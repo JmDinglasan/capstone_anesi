@@ -1,5 +1,6 @@
 import 'package:capstone_anesi/constant.dart';
 import 'package:capstone_anesi/historyScreen/HistoryTransaction.dart';
+import 'package:capstone_anesi/inventoryScreen/inventory.dart';
 import 'package:capstone_anesi/main.dart';
 import 'package:capstone_anesi/reportScreen/report.dart';
 //import 'package:capstone_anesi/productScreen/product.dart';
@@ -79,7 +80,7 @@ class AppDrawer extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.report, color: Colors.white),
+              leading: const Icon(Icons.assessment_outlined, color: Colors.white),
               title: const Text(
                 'Report',
                 style: TextStyle(color: Colors.white),
@@ -111,9 +112,9 @@ class AppDrawer extends StatelessWidget {
             ),
             
             ListTile(
-              leading: const Icon(Icons.inventory, color: Colors.white),
+              leading: const Icon(Icons.inventory_outlined, color: Colors.white),
               title: const Text(
-                'Manage Stocks',
+                'View Stocks',
                 style: TextStyle(color: Colors.white),
               ),
               tileColor: kprimaryColor, // ListTile background color
@@ -121,7 +122,7 @@ class AppDrawer extends StatelessWidget {
                 // Handle navigation to Manage Stocks
                   Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ManageStocksPage()),
+                  MaterialPageRoute(builder: (context) => const InventoryScreen()),
                 );
               },
             ),  

@@ -2,7 +2,7 @@ name: capstone_anesi
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -28,17 +28,23 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  intl: ^0.17.0  # Or the latest version available
+  intl: ^0.17.0 # Or the latest version available
   flutter:
     sdk: flutter
   provider: ^6.1.2
   fl_chart: ^0.69.0
+  shared_preferences: ^2.0.13
 
+  esc_pos_utils: ^1.0.0 # or ^3.0.0 for an older, stable version
+  esc_pos_printer: ^4.0.0 # Match this version with esc_pos_utils if needed
+  permission_handler: ^10.0.0 # If you need to request permissions for Bluetooth
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   google_fonts: ^6.2.1
+  firebase_core: ^3.8.0
+  cloud_firestore: ^5.5.0
 
 dev_dependencies:
   flutter_test:

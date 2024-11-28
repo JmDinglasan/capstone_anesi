@@ -1,11 +1,10 @@
-//import 'package:capstone_anesi/main.dart';
 import 'package:capstone_anesi/constant.dart';
 import 'package:capstone_anesi/main.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:capstone_anesi/cartScreen/cartmodel.dart'; // Corrected import path
 import 'package:capstone_anesi/orderModel.dart' as OrderModel; // Import the OrderModel class
-import 'package:capstone_anesi/cartScreen/transactionModel.dart';
+import 'package:capstone_anesi/historyScreen/transactionModel.dart';
 
 class ListScreen extends StatefulWidget {
   const ListScreen({super.key});
@@ -172,11 +171,6 @@ class _ListScreenState extends State<ListScreen> with SingleTickerProviderStateM
           },
         ),
         const SizedBox(height:10),
-        // const Text(
-        //   'E-Wallet:',
-        //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-        // ),
-        //const SizedBox(height: 10),
         const Text(
           'E - Wallet:',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
@@ -235,7 +229,6 @@ class _ListScreenState extends State<ListScreen> with SingleTickerProviderStateM
     ),
   );
 }
-
 
  // Method to handle payment processing for CASH
   void _processPayment() {
@@ -343,6 +336,9 @@ class _ListScreenState extends State<ListScreen> with SingleTickerProviderStateM
   'price': totalBill,
    });
 
+  // final int milkDeduction;
+  // Provider.of<InventoryModel>(context, listen: false).deductItem('Milk',milkDeduction);
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -420,9 +416,8 @@ class _ListScreenState extends State<ListScreen> with SingleTickerProviderStateM
     );
   }
 }
-}  // Method to handle payment processing for NON-CASH
+} 
  
-
 //function for non-cash
 void _noncashpayment (BuildContext context, CartModel cartModel){
   final cart = Provider.of<CartModel>(context, listen: false);
@@ -505,10 +500,6 @@ void _noncashpayment (BuildContext context, CartModel cartModel){
                   style: TextStyle(fontSize: 18),
                 ),
                 SizedBox(height: 5),
-                // Text(
-                //   "Money Changes: ₱${(enteredAmount - totalBill).toStringAsFixed(2)}",
-                //   style: const TextStyle(fontSize: 18),
-                // ),
               ],
             ),
           ),
@@ -526,9 +517,6 @@ void _noncashpayment (BuildContext context, CartModel cartModel){
                 const SizedBox(width: 20), // Adds space between the buttons
                 TextButton(
                   onPressed: () {
-                  //_completeOrder(context, cartModel);
-
-                  // Handle navigation to Main Screen
                   Navigator.push(
                   context, 
                   MaterialPageRoute(builder: (context) =>const MainScreen()),
@@ -559,8 +547,5 @@ void _noncashpayment (BuildContext context, CartModel cartModel){
         }).toList(),
       ),
     );  
-
-    // Navigate to the transaction history screen
-    //Navigator.pushNamed(context, '/list');
   }
   

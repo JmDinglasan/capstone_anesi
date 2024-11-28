@@ -1,4 +1,5 @@
 import 'package:capstone_anesi/cartScreen/cartmodel.dart';
+import 'package:capstone_anesi/inventoryScreen/inventorymodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:capstone_anesi/cartScreen/cart.dart';
@@ -14,17 +15,29 @@ class Noodles extends StatefulWidget {
 class _NoodlesState extends State<Noodles> {
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> allItems = [
-    {'name': 'Cheesy Spicy Samyang Noodles', 'price': 150.00, 'category': 'SOLO'},
-    {'name': 'Cheesy Spicy Samyang Carbonara', 'price': 150.00, 'category': 'SOLO'},
-    {'name': 'Cheesy Samyang Noodles', 'price': 150.00, 'category': 'SOLO'},
-    {'name': 'Cheesy Spicy Samyang Noodles (Sharing)', 'price': 299.00, 'category': 'SHARING'},
-    {'name': 'Cheesy Spicy Samyang Carbonara (Sharing)', 'price': 299.00, 'category': 'SHARING'},
-    {'name': 'Cheesy Samyang Noodles (Sharing)', 'price': 299.00, 'category': 'SHARING'},
-    {'name': 'Egg', 'price': 25.00, 'category': 'ADD-ONS'},
-    {'name': 'Spam Slice', 'price': 30.00, 'category': 'ADD-ONS'},
-    {'name': 'Chicken Karaage (3pcs)', 'price': 50.00, 'category': 'ADD-ONS'},
-    {'name': 'Extra Cheese Sauce', 'price': 40.00, 'category': 'ADD-ONS'},
-    {'name': 'Nori', 'price': 20.00, 'category': 'ADD-ONS'},
+    {'name': 'Cheesy Spicy Samyang Noodles', 'price': 150.00, 'category': 'SOLO', 'minMeltedCheese': 35,
+    'minCSN': 1},
+
+    {'name': 'Cheesy Spicy Samyang Carbonara', 'price': 150.00, 'category': 'SOLO', 'minMeltedCheese': 35,
+    'minCSC': 1},
+
+    {'name': 'Cheesy Samyang Noodles', 'price': 150.00, 'category': 'SOLO', 'minMeltedCheese': 35,
+    'minCN': 1},
+
+    {'name': 'Cheesy Spicy Samyang Noodles (Sharing)', 'price': 299.00, 'category': 'SHARING', 
+    'minMeltedCheese': 70,'minCSN': 2},
+
+    {'name': 'Cheesy Spicy Samyang Carbonara (Sharing)', 'price': 299.00, 'category': 'SHARING', 
+    'minMeltedCheese': 70,'minCSC': 2},
+
+    {'name': 'Cheesy Samyang Noodles (Sharing)', 'price': 299.00, 'category': 'SHARING', 
+    'minMeltedCheese': 70,'minCN': 2},
+    // ADD ONS
+    {'name': 'Egg', 'price': 25.00, 'category': 'ADD-ONS', 'minEgg': 1},
+    {'name': 'Spam Slice', 'price': 30.00, 'category': 'ADD-ONS', 'minSpam': 1},
+    {'name': 'Chicken Karaage (3pcs)', 'price': 50.00, 'category': 'ADD-ONS', 'minKaraage': 3},
+    {'name': 'Extra Cheese Sauce', 'price': 40.00, 'category': 'ADD-ONS', 'minMeltedCheese': 35},
+    {'name': 'Nori', 'price': 20.00, 'category': 'ADD-ONS', 'minNori': 1},
   ];
 
   List<Map<String, dynamic>> filteredItems = [];
@@ -155,7 +168,18 @@ class _NoodlesState extends State<Noodles> {
           itemCount: categoryItems.length,
           itemBuilder: (context, index) {
             final item = categoryItems[index];
-            return CoffeeCard(item['name'], item['price']);
+            return CoffeeCard(
+              name: item['name'], 
+              price: item['price'],
+              minMeltedCheese: item['minMeltedCheese'] ?? 0,
+              minCSN: item['minCSN'] ?? 0,
+              minCSC: item['minCSC'] ?? 0,
+              minCN: item['minCN'] ?? 0,
+              minEgg: item['minEgg'] ?? 0,
+              minSpam: item['minSpam'] ?? 0,
+              minKaraage: item['minKaraage'] ?? 0,
+              minNori: item['minNori'] ?? 0,
+              );
           },
         ),
       ],
@@ -166,8 +190,23 @@ class _NoodlesState extends State<Noodles> {
 class CoffeeCard extends StatelessWidget {
   final String name;
   final double price;
+  final int minMeltedCheese;
+  final int minCSN;
+  final int minCSC;
+  final int minCN;
+  final int minEgg;
+  final int minSpam;
+  final int minKaraage;
+  final int minNori;
 
-  const CoffeeCard(this.name, this.price, {super.key});
+   const CoffeeCard({
+    super.key,
+    required this.name,
+    required this.price, 
+    this.minMeltedCheese = 0, 
+    this.minCSN = 0, this.minCSC = 0,this.minCN =  0,
+    this.minEgg = 0,this.minSpam = 0,this.minKaraage = 0,this.minNori = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -193,9 +232,16 @@ class CoffeeCard extends StatelessWidget {
           const SizedBox(height: 25),
           ElevatedButton(
             onPressed: () {
-              Provider.of<CartModel>(context, listen: false).addToCart(
-                  name, price,
-                  addons: []); // Add to cart without any add-ons
+              Provider.of<CartModel>(context, listen: false).addToCart(name, price); 
+              
+              Provider.of<InventoryModel>(context, listen: false).deductItem('Melted Cheese',minMeltedCheese);
+              Provider.of<InventoryModel>(context, listen: false).deductItem('Cheesy Spicy Samyang Noodles',minCSN);
+              Provider.of<InventoryModel>(context, listen: false).deductItem('Cheesy Spicy Samyang Carbonara',minCSC);
+              Provider.of<InventoryModel>(context, listen: false).deductItem('Cheesy Samyang Noodles',minCN);
+              Provider.of<InventoryModel>(context, listen: false).deductItem('Egg',minEgg);
+              Provider.of<InventoryModel>(context, listen: false).deductItem('Spam',minSpam);
+              Provider.of<InventoryModel>(context, listen: false).deductItem('Chicken Karaage',minKaraage);
+              Provider.of<InventoryModel>(context, listen: false).deductItem('Nori',minNori);
             },
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,

@@ -26,24 +26,6 @@ class CartModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addAddonToItem(Map<String, dynamic> item, Map<String, dynamic> addon) {
-    final itemIndex = _items.indexWhere((i) => i['name'] == item['name']);
-    if (itemIndex != -1) {
-      _items[itemIndex]['addons'].add(addon);
-      notifyListeners();
-    }
-  }
-
-  void removeAddonFromItem(
-      Map<String, dynamic> item, Map<String, dynamic> addon) {
-    final itemIndex = _items.indexWhere((i) => i['name'] == item['name']);
-    if (itemIndex != -1) {
-      _items[itemIndex]['addons']
-          .removeWhere((a) => a['name'] == addon['name']);
-      notifyListeners();
-    }
-  }
-
   void removeItem(Map<String, dynamic> item) {
     _items.remove(item);
     notifyListeners();

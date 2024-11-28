@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "389923056103",
+    "project_id": "posdb-16945",
+    "storage_bucket": "posdb-16945.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:389923056103:android:ea3875ac3525366b91f542",
+        "android_client_info": {
+          "package_name": "com.example.capstone_anesi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA1pH-O-KMXO6sEKgETjxY8unTRiMYvRcM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

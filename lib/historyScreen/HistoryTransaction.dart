@@ -1,280 +1,393 @@
-import 'package:capstone_anesi/cartScreen/transactionModel.dart';
+import 'package:capstone_anesi/historyScreen/transactionModel.dart';
 import 'package:capstone_anesi/constant.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:capstone_anesi/orderModel.dart' as OrderModel; // Prefix this one as OrderModel
-  
+//import 'package:capstone_anesi/orderModel.dart' as OrderModel; // Prefix this one as OrderModel
+import 'package:shared_preferences/shared_preferences.dart';
+
 class HistoryTransactionScreen extends StatefulWidget {
   const HistoryTransactionScreen({super.key});
 
   @override
-  _HistoryTransactionScreenState createState() => _HistoryTransactionScreenState();
+  _HistoryTransactionScreenState createState() =>
+      _HistoryTransactionScreenState();
 }
 
-  List<Map<String, String>> expenses = [];
-  DateTime selectedDate = DateTime.now(); // To store the selected date
-  double cashOnHand = 0; // Default value
-  double expense = 0; // Default value
-
 class _HistoryTransactionScreenState extends State<HistoryTransactionScreen> {
+  DateTime? selectedDate;
+  double cashOnHand = 0.0;
+  double expense = 0.0;
+
+  Future<void> _loadCashOnHand() async {
+    final prefs = await SharedPreferences.getInstance();
+    String selectedDateKey = selectedDate != null
+        ? DateFormat('yyyy-MM-dd').format(selectedDate!)
+        : DateFormat('yyyy-MM-dd').format(DateTime.now());
+    double storedCashOnHand =
+        prefs.getDouble('cash_on_hand_$selectedDateKey') ?? 0.0;
+    setState(() {
+      cashOnHand = storedCashOnHand;
+    });
+  }
+
+  Future<void> _loadExpense() async {
+    final prefs = await SharedPreferences.getInstance();
+    String selectedDateKey = selectedDate != null
+        ? DateFormat('yyyy-MM-dd').format(selectedDate!)
+        : DateFormat('yyyy-MM-dd').format(DateTime.now());
+    double storedExpense = prefs.getDouble('expense$selectedDateKey') ?? 0.0;
+    setState(() {
+      expense = storedExpense;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCashOnHand();
+    _loadExpense();
+  }
+
   @override
   Widget build(BuildContext context) {
-    
-    final orders = Provider.of<OrderModel.OrderModel>(context).orders; // Use prefixed OrderModel
-    final cashOnHand = Provider.of<OrderModel.OrderModel>(context).cashOnHand; 
-    final totalExpenses = Provider.of<OrderModel.OrderModel>(context).totalExpenses;
-    double totalSales = orders.fold(0, (sum, order) => sum + order['price']); 
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('History Transaction'),
+        title: const Text(
+          'HISTORY TRANSACTION',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_alt),
-            onPressed: () => _selectDate(context), // Filter button for date picker
+            onPressed: () async {
+              final pickedDate = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(2000),
+                lastDate: DateTime.now(),
+              );
+              if (pickedDate != null) {
+                setState(() {
+                  selectedDate = pickedDate;
+                });
+                _loadCashOnHand();
+                _loadExpense();
+              }
+            },
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      body: Consumer<TransactionModel>(
+        builder: (context, transactionModel, child) {
+          // Filter transactions based on the selected date
+          final filteredTransactions = selectedDate == null
+              ? transactionModel.transactions.where((transaction) {
+                  // Compare transaction date with today’s date
+                  final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+                  final transactionDate =
+                      DateFormat('yyyy-MM-dd').format(transaction.date);
+                  return transactionDate == today;
+                }).toList()
+              : transactionModel.transactions.where((transaction) {
+                  // Compare transaction date with the selected date
+                  final transactionDate =
+                      DateFormat('yyyy-MM-dd').format(transaction.date);
+                  final selectedDateFormatted =
+                      DateFormat('yyyy-MM-dd').format(selectedDate!);
+                  return transactionDate == selectedDateFormatted;
+                }).toList();
+
+          // Calculate total sales for the selected date
+          final double totalSales = filteredTransactions.fold(
+            0.0,
+            (sum, transaction) => sum + transaction.totalAmount,
+          );
+
+          return ListView(
+            padding: const EdgeInsets.all(16.0),
+            children: [
+              // Income Section
+              const Text(
+                'Income',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Income',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                      Text(
+                        'Cash on Hand: ₱${cashOnHand.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black54,
                         ),
                       ),
+                      const SizedBox(height: 5),
                       Text(
-                        "Cash on Hand: ₱${cashOnHand.toStringAsFixed(2)}",
-                        style: const TextStyle(fontSize: 16, color: Colors.black),
+                        selectedDate != null
+                            ? DateFormat('MMMM dd, yyyy').format(selectedDate!)
+                            : DateFormat('MMMM dd, yyyy')
+                                .format(DateTime.now()),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black54,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 5),
-                  Text(
-                    "Selected Date: ${selectedDate.toLocal().toString().split(' ')[0]}",
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 20),
-                  Column(
-                    children: [
-                      // Total Sales and Total Expenses aligned in the same row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Total Sales: ₱${totalSales.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                  if (totalSales >
+                      0) // Show total sales only if there are transactions
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text(
+                          'Total Sales',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black54,
                           ),
-                          Text(
-                            'Total Expenses: ₱${totalExpenses.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.black,
-                            ),
+                        ),
+                        Text(
+                          '₱${totalSales.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 10), // Adjust space between sections
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
                 ],
               ),
-            ),
-            const SizedBox(height: 10),
+              const SizedBox(height: 20),
 
-            // Orders List Section with dynamic data
-            Expanded(
-              child: Consumer<TransactionModel>(
-                builder: (context, transactionModel, child) {
-                  return ListView.builder(
-                    itemCount: transactionModel.transactions.length, // Correct length for transactions
-                    itemBuilder: (context, index) {
-                      // Format the current date without the time
-                      final formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-                      // Use Transaction from transactionModel
-                      final Transaction transaction = transactionModel.transactions[index];
+              // Transactions List
+              if (filteredTransactions.isEmpty)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Text(
+                      'No transactions for the selected date.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                )
+              else
+                ...filteredTransactions.map((transaction) {
+                  // Format the date with time in numeric format
+                  final String transactionDateTime =
+                      DateFormat('MM/dd/yyyy hh:mm a').format(transaction.date);
 
-                      return Container(
-                        margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-                        padding: const EdgeInsets.all(16.0),
+                  return GestureDetector(
+                    onTap: () {
+                      _showOrderDetails(context, transaction);
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 8.0),
+                      padding: const EdgeInsets.all(12.0),
+                      decoration: BoxDecoration(
+                        color: kprimaryColor,
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: ListTile(
+                        title: Text(
+                          '₱${transaction.totalAmount.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                              fontSize: 16, color: Colors.white),
+                        ),
+                        subtitle: Text(
+                          transactionDateTime, // Display date with numeric format
+                          style: const TextStyle(
+                              fontSize: 14, color: Colors.white70),
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              const SizedBox(height: 20),
+
+              // Expense Section (conditionally rendered)
+              if (filteredTransactions.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Expenses',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87),
+                    ),
+                    const SizedBox(height: 10),
+                    // Updated container style to match transaction container style
+                    GestureDetector(
+                      onTap: () {
+                        // Handle any onTap functionality you might need
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 8.0),
+                        padding: const EdgeInsets.all(12.0),
                         decoration: BoxDecoration(
-                          color: kprimaryColor,
-                          borderRadius: BorderRadius.circular(10.0),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black12, // Shadow for a more modern look
-                              blurRadius: 6.0,
-                              offset: Offset(0, 2), // Slight shadow offset
-                            ),
-                          ],
+                          color:
+                              kprimaryColor, // Use the same color as transaction container
+                          borderRadius:
+                              BorderRadius.circular(8.0), // Rounded corners
                         ),
                         child: ListTile(
                           title: Text(
-                            '₱${transaction.totalAmount.toStringAsFixed(2)}',
+                            '₱${expense.toStringAsFixed(2)}',
                             style: const TextStyle(
-                              color: Colors.white, // Text color for better contrast
-                              fontSize: 18, // Slightly larger font size
-                              fontWeight: FontWeight.normal,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
                           subtitle: Text(
-                            formattedDate,
+                            selectedDate != null
+                                ? DateFormat('MM/dd/yyyy').format(selectedDate!)
+                                : DateFormat('MM/dd/yyyy')
+                                    .format(DateTime.now()),
                             style: const TextStyle(
-                              color: Colors.white70, // Subtle color for the subtitle
-                              fontSize: 16,
+                              fontSize: 14,
+                              color: Colors.white70,
+                              fontWeight: FontWeight.w400,
                             ),
                           ),
-                          trailing: const Icon(
-                            Icons.arrow_forward_ios, // Add an arrow icon to indicate more details
-                            color: Colors.white70, // Match the color to the subtitle
-                            size: 18,
-                          ),
-                          onTap: () {
-                            // Add navigation to order details if needed
-                            _showOrderDetails(context, transaction);
-                          },
+                          // Removed the trailing icon
                         ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          );
+        },
       ),
     );
   }
 
-void _showOrderDetails(BuildContext context, Transaction transaction) {
-  // Calculate the total amount
-  double totalAmount = transaction.orders.fold(0, (sum, order) => sum + order.itemPrice);
+  void _showOrderDetails(BuildContext context, Transaction transaction) {
+    // Calculate the total amount
+    double totalAmount =
+        transaction.orders.fold(0, (sum, order) => sum + order.itemPrice);
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15.0), // Rounded corners for the dialog
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.receipt_long, color: kprimaryColor),
-            SizedBox(width: 10),
-            Text(
-              'Order Details',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        content: SizedBox(
-          height: 250.0, // Adjusted height for better viewing
-          width: 320.0, // Adjusted width for better viewing
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(15.0), // Rounded corners for the dialog
+          ),
+          title: const Row(
             children: [
-              // Display Payment Method
+              Icon(Icons.receipt_long, color: kprimaryColor),
+              SizedBox(width: 10),
               Text(
-                'Payment Method: ${transaction.paymentMethod}', // Show payment method
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black54,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: transaction.orders.length,
-                  itemBuilder: (context, index) {
-                    final order = transaction.orders[index];
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        order.itemName,
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      trailing: Text(
-                        '₱${order.itemPrice.toStringAsFixed(2)}',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const Divider(thickness: 1.3),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Total:',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      '₱${totalAmount.toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kprimaryColor),
-                    ),
-                  ],
+                'Order Details',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-        ),
-        actions: [
-          ElevatedButton.icon(
-            icon: const Icon(Icons.check_circle_outline),
-            label: const Text('Close'),
-            style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.white, backgroundColor: kprimaryColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          content: SizedBox(
+            height: 250.0, // Adjusted height for better viewing
+            width: 320.0, // Adjusted width for better viewing
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Display Payment Method
+                Text(
+                  'Payment Method: ${transaction.paymentMethod}', // Show payment method
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: transaction.orders.length,
+                    itemBuilder: (context, index) {
+                      final order = transaction.orders[index];
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          order.itemName,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        trailing: Text(
+                          '₱${order.itemPrice.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const Divider(thickness: 1.3),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Total:',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        '₱${totalAmount.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: kprimaryColor),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            onPressed: () => Navigator.of(context).pop(),
           ),
-        ],
-      );
-    },
-  );
-}
-
-
-
-
- // Method to show DatePicker
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2020), // Set range as needed
-      lastDate: DateTime(2025),
+          actions: [
+            ElevatedButton.icon(
+              icon: const Icon(Icons.check_circle_outline),
+              label: const Text('Close'),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: kprimaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      },
     );
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        selectedDate = picked; 
-      });
-    }
-    }
+  }
 }
-
