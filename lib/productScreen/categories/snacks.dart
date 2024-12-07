@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:capstone_anesi/cartScreen/cartmodel.dart';
 import 'package:capstone_anesi/inventoryScreen/inventorymodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:capstone_anesi/cartScreen/cart.dart';
 import 'package:capstone_anesi/constant.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Snacks extends StatefulWidget {
   const Snacks({super.key});
@@ -15,17 +18,22 @@ class Snacks extends StatefulWidget {
 class _SnacksState extends State<Snacks> {
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> allItems = [
-    {'name': 'Karaage Fries', 'price': 180.00, 'category': 'MEALS', 'minKaraage': 5},
-    {'name': 'Sriracha Spam Garlic Rice', 'price': 180.00, 'category': 'MEALS', 'minSpam': 3},
-    {'name': 'Chicken Karaage Rice', 'price': 155.00, 'category': 'MEALS', 'minKaraage': 4},
-    {'name': 'Cheesy Fries', 'price': 125.00, 'category': 'SNACKS', 'minFries': 250},
-    {'name': 'Chicken Karaage (6 pcs)', 'price': 130.00, 'category': 'SNACKS', 'minKaraage': 6},
-    {'name': 'Salted Fries', 'price': 90.00, 'category': 'SNACKS', 'minFries': 250},
-    
-    {'name': 'Egg', 'price': 25.00, 'category': 'ADD-ONS', 'minEgg': 1},
-    {'name': 'Spam Slice', 'price': 30.00, 'category': 'ADD-ONS', 'minSpam': 1},
-    {'name': 'Extra Cheese Sauce', 'price': 40.00, 'category': 'ADD-ONS', 'minMeltedCheese': 35},
-    {'name': 'Nori', 'price': 20.00, 'category': 'ADD-ONS', 'minNori': 1},
+    {
+      'name': 'Karaage Fries',
+      'price': 180.00,
+      'category': 'MEALS',
+      'minKaraage': 5
+    },
+    // {'name': 'Sriracha Spam Garlic Rice', 'price': 180.00, 'category': 'MEALS', 'minSpam': 3},
+    // {'name': 'Chicken Karaage Rice', 'price': 155.00, 'category': 'MEALS', 'minKaraage': 4},
+    // {'name': 'Cheesy Fries', 'price': 125.00, 'category': 'SNACKS', 'minFries': 250},
+    // {'name': 'Chicken Karaage (6 pcs)', 'price': 130.00, 'category': 'SNACKS', 'minKaraage': 6},
+    // {'name': 'Salted Fries', 'price': 90.00, 'category': 'SNACKS', 'minFries': 250},
+
+    // {'name': 'Egg', 'price': 25.00, 'category': 'ADD-ONS', 'minEgg': 1},
+    // {'name': 'Spam Slice', 'price': 30.00, 'category': 'ADD-ONS', 'minSpam': 1},
+    // {'name': 'Extra Cheese Sauce', 'price': 40.00, 'category': 'ADD-ONS', 'minMeltedCheese': 35},
+    // {'name': 'Nori', 'price': 20.00, 'category': 'ADD-ONS', 'minNori': 1},
   ];
 
   List<Map<String, dynamic>> filteredItems = [];
@@ -33,6 +41,7 @@ class _SnacksState extends State<Snacks> {
   @override
   void initState() {
     super.initState();
+    _loadProducts();
     filteredItems = List.from(allItems); // Initially show all items
     _searchController.addListener(_filterItems);
   }
@@ -50,6 +59,20 @@ class _SnacksState extends State<Snacks> {
           .where((item) => item['name'].toLowerCase().contains(query))
           .toList();
     });
+  }
+
+  // Load products from SharedPreferences
+  Future<void> _loadProducts() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? productsJson = prefs.getString('products');
+    if (productsJson != null) {
+      List<dynamic> productList = json.decode(productsJson);
+      setState(() {
+        allItems = List<Map<String, dynamic>>.from(productList);
+        filteredItems =
+            List.from(allItems); // Ensure filtered items are updated
+      });
+    }
   }
 
   @override
@@ -151,13 +174,13 @@ class _SnacksState extends State<Snacks> {
             crossAxisCount: 2,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
-            childAspectRatio: 1.5,
+            childAspectRatio: 0.89,
           ),
           itemCount: categoryItems.length,
           itemBuilder: (context, index) {
             final item = categoryItems[index];
-              return CoffeeCard(
-              name: item['name'], 
+            return CoffeeCard(
+              name: item['name'],
               price: item['price'],
               minMeltedCheese: item['minMeltedCheese'] ?? 0,
               minEgg: item['minEgg'] ?? 0,
@@ -165,7 +188,8 @@ class _SnacksState extends State<Snacks> {
               minKaraage: item['minKaraage'] ?? 0,
               minNori: item['minNori'] ?? 0,
               minFries: item['minFries'] ?? 0,
-              );
+              index: index, // Pass the index to identify which item to delete
+            );
           },
         ),
       ],
@@ -182,13 +206,20 @@ class CoffeeCard extends StatelessWidget {
   final int minKaraage;
   final int minNori;
   final int minFries;
+  final int index; // Added index to identify the product
 
-    const CoffeeCard({
+
+  const CoffeeCard({
     super.key,
     required this.name,
-    required this.price, 
-    this.minMeltedCheese = 0, this.minFries = 0,
-    this.minEgg = 0,this.minSpam = 0,this.minKaraage = 0,this.minNori = 0,
+    required this.price,
+    this.minMeltedCheese = 0,
+    this.minFries = 0,
+    this.minEgg = 0,
+    this.minSpam = 0,
+    this.minKaraage = 0,
+    this.minNori = 0,
+    required this.index, // Receive the indexk
   });
 
   @override
@@ -209,19 +240,27 @@ class CoffeeCard extends StatelessWidget {
           const SizedBox(height: 15),
           Text(
             price.toStringAsFixed(2),
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 25),
           ElevatedButton(
             onPressed: () {
-              Provider.of<CartModel>(context, listen: false).addToCart(name, price);
+              Provider.of<CartModel>(context, listen: false)
+                  .addToCart(name, price);
 
-              Provider.of<InventoryModel>(context, listen: false).deductItem('Melted Cheese',minMeltedCheese);
-              Provider.of<InventoryModel>(context, listen: false).deductItem('Egg',minEgg);
-              Provider.of<InventoryModel>(context, listen: false).deductItem('Spam',minSpam);
-              Provider.of<InventoryModel>(context, listen: false).deductItem('Chicken Karaage',minKaraage);
-              Provider.of<InventoryModel>(context, listen: false).deductItem('Nori',minNori);
-              Provider.of<InventoryModel>(context, listen: false).deductItem('Fries',minFries);
+              Provider.of<InventoryModel>(context, listen: false)
+                  .deductItem('Melted Cheese', minMeltedCheese);
+              Provider.of<InventoryModel>(context, listen: false)
+                  .deductItem('Egg', minEgg);
+              Provider.of<InventoryModel>(context, listen: false)
+                  .deductItem('Spam', minSpam);
+              Provider.of<InventoryModel>(context, listen: false)
+                  .deductItem('Chicken Karaage', minKaraage);
+              Provider.of<InventoryModel>(context, listen: false)
+                  .deductItem('Nori', minNori);
+              Provider.of<InventoryModel>(context, listen: false)
+                  .deductItem('Fries', minFries);
             },
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,

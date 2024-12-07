@@ -1,30 +1,25 @@
+import 'package:capstone_anesi/app.dart';
 import 'package:capstone_anesi/cartScreen/cart.dart';
 import 'package:capstone_anesi/cartScreen/cartmodel.dart';
 import 'package:capstone_anesi/cartScreen/noodlesModel.dart';
 import 'package:capstone_anesi/historyScreen/transactionModel.dart';
-import 'package:capstone_anesi/hamburgerIcon/hamburger.dart';
 import 'package:capstone_anesi/inventoryScreen/inventorymodel.dart';
-//import 'package:capstone_anesi/inventoryScreen/inventorymodel.dart';
 import 'package:capstone_anesi/listsScreen/lists.dart';
+import 'package:capstone_anesi/loginScreen.dart';
+import 'package:capstone_anesi/orderModel.dart';
 import 'package:capstone_anesi/productScreen/product.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'navbar.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'orderModel.dart'; // Import the OrderModel class  
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+//import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
-
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-    
-
   runApp(
     MultiProvider(
       providers: [
-      
-          ChangeNotifierProvider(
+        ChangeNotifierProvider(
           create: (context) => CartModel(),
         ),
         ChangeNotifierProvider(
@@ -34,63 +29,39 @@ void main() async {
           create: (context) => OrderModel(),
         ),
         ChangeNotifierProvider(create: (_) => TransactionModel()),
-        ChangeNotifierProvider(create: (_) => InventoryModel(inventorystock: 0)),
+        ChangeNotifierProvider(
+            create: (_) => InventoryModel(inventorystock: 0)),
       ],
-      child: const MyApp(),
+      child: MyApp(),
     ),
-  );
+  ); //
 }
 
-class MyApp extends StatelessWidget {
+// //eto mula dito hanggang bnaba ipaste nyo sa sa main.dart nyo
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  
+  @override
+  _MyAppState createState() => _MyAppState();
+}
 
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Cart',
-      initialRoute: '/',
-      routes: {
-        '/product':(context) => const Product(),
-        '/cart':(context) =>const Carts(),
-        '/list': (context) =>const ListScreen(),
-        'mainscreen': (context) =>const MainScreen(),
-      },
-
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        textTheme: GoogleFonts.mulishTextTheme(),
+        primaryColor: Colors.blue[900],
       ),
-      home: const MainScreen(),
+      initialRoute: '/',
+      routes: {
+        '/product': (context) => const Product(),
+        '/cart': (context) => const Carts(),
+        '/list': (context) => const ListScreen(),
+        'mainscreen': (context) => const MainScreen(),
+      },
+      home: LoginPage(),
     );
   }
 }
-
-class MainScreen extends StatelessWidget {
-  const MainScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cashier'),
-        leading: Builder(
-          builder: (BuildContext context) {
-            return IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-            );
-          },
-        ),
-      ),
-      drawer: const AppDrawer(),
-      body:const BottomNavBar(),
-    );
-  }
-}
-
-
 

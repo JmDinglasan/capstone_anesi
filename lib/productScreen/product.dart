@@ -45,27 +45,6 @@ class Product extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: 16),
-              // Popular Section
-              Text(
-                'Popular',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8),
-              PopularItem('Snickers Iced Coffee', 1300.00, 0.65),
-              PopularItem('Anesi Iced Choco', 500.00, 0.35),
-              PopularItem('Iced Cafe Latte', 390.00, 0.20),
-              SizedBox(height: 16),
-              // Currently N/A Section
-              Text(
-                'Currently N/A',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 8),
-              ListTile(
-                title: Text('Ube Milk'),
-                trailing: Text('110.00', style: TextStyle(color: Colors.red)),
-              ),
               SizedBox(height: 16), // Added some space at the end
             ],
           ),
@@ -140,32 +119,3 @@ class CategoryCard extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-class PopularItem extends StatelessWidget {
-  final String name;
-  final double price;
-  final double progress;
-
-  const PopularItem(this.name, this.price, this.progress, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [ 
-        ListTile(
-          title: Text(name),
-          subtitle: LinearProgressIndicator(value: progress),
-          trailing: Text(price.toStringAsFixed(2),
-              style: const TextStyle(fontWeight: FontWeight.bold)),
-        ),
-        const Divider(),  
-      ],
-    );
-  }
-}
-
-

@@ -1,9 +1,13 @@
+import 'dart:convert';
 import 'package:capstone_anesi/cartScreen/cartmodel.dart';
 import 'package:capstone_anesi/inventoryScreen/inventorymodel.dart';
+// import 'package:capstone_anesi/productScreen/CRUD_Drinks/deleteCoffee.dart';
+// import 'package:capstone_anesi/productScreen/CRUD_Drinks/editCoffee.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:capstone_anesi/cartScreen/cart.dart';
 import 'package:capstone_anesi/constant.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Noodles extends StatefulWidget {
   const Noodles({super.key});
@@ -14,30 +18,15 @@ class Noodles extends StatefulWidget {
 
 class _NoodlesState extends State<Noodles> {
   final TextEditingController _searchController = TextEditingController();
+
   List<Map<String, dynamic>> allItems = [
-    {'name': 'Cheesy Spicy Samyang Noodles', 'price': 150.00, 'category': 'SOLO', 'minMeltedCheese': 35,
-    'minCSN': 1},
-
-    {'name': 'Cheesy Spicy Samyang Carbonara', 'price': 150.00, 'category': 'SOLO', 'minMeltedCheese': 35,
-    'minCSC': 1},
-
-    {'name': 'Cheesy Samyang Noodles', 'price': 150.00, 'category': 'SOLO', 'minMeltedCheese': 35,
-    'minCN': 1},
-
-    {'name': 'Cheesy Spicy Samyang Noodles (Sharing)', 'price': 299.00, 'category': 'SHARING', 
-    'minMeltedCheese': 70,'minCSN': 2},
-
-    {'name': 'Cheesy Spicy Samyang Carbonara (Sharing)', 'price': 299.00, 'category': 'SHARING', 
-    'minMeltedCheese': 70,'minCSC': 2},
-
-    {'name': 'Cheesy Samyang Noodles (Sharing)', 'price': 299.00, 'category': 'SHARING', 
-    'minMeltedCheese': 70,'minCN': 2},
-    // ADD ONS
-    {'name': 'Egg', 'price': 25.00, 'category': 'ADD-ONS', 'minEgg': 1},
-    {'name': 'Spam Slice', 'price': 30.00, 'category': 'ADD-ONS', 'minSpam': 1},
-    {'name': 'Chicken Karaage (3pcs)', 'price': 50.00, 'category': 'ADD-ONS', 'minKaraage': 3},
-    {'name': 'Extra Cheese Sauce', 'price': 40.00, 'category': 'ADD-ONS', 'minMeltedCheese': 35},
-    {'name': 'Nori', 'price': 20.00, 'category': 'ADD-ONS', 'minNori': 1},
+    {
+      'name': 'Cheesy Spicy Samyang Noodles',
+      'price': 150.00,
+      'category': 'SOLO',
+      'minMeltedCheese': 35,
+      'minCSN': 1
+    },
   ];
 
   List<Map<String, dynamic>> filteredItems = [];
@@ -45,6 +34,7 @@ class _NoodlesState extends State<Noodles> {
   @override
   void initState() {
     super.initState();
+    _loadProducts();
     filteredItems = List.from(allItems); // Initially show all items
     _searchController.addListener(_filterItems);
   }
@@ -62,6 +52,20 @@ class _NoodlesState extends State<Noodles> {
           .where((item) => item['name'].toLowerCase().contains(query))
           .toList();
     });
+  }
+
+  // Load products from SharedPreferences
+  Future<void> _loadProducts() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? productsJson = prefs.getString('products');
+    if (productsJson != null) {
+      List<dynamic> productList = json.decode(productsJson);
+      setState(() {
+        allItems = List<Map<String, dynamic>>.from(productList);
+        filteredItems =
+            List.from(allItems); // Ensure filtered items are updated
+      });
+    }
   }
 
   @override
@@ -94,10 +98,10 @@ class _NoodlesState extends State<Noodles> {
             Expanded(
               child: ListView(
                 children: [
-                  _buildSection('SOLO'),
+                  _buildSection('SAMYANG NOODLES'),
                   const SizedBox(height: 35),
-                  _buildSection('SHARING'),
-                  const SizedBox(height: 35),
+                  // _buildSection('SHARING'),
+                  // const SizedBox(height: 35),
                   _buildSection('ADD-ONS'),
                 ],
               ),
@@ -163,13 +167,13 @@ class _NoodlesState extends State<Noodles> {
             crossAxisCount: 2,
             crossAxisSpacing: 10,
             mainAxisSpacing: 15,
-            childAspectRatio: 1.5,
+            childAspectRatio: 0.89,
           ),
           itemCount: categoryItems.length,
           itemBuilder: (context, index) {
             final item = categoryItems[index];
             return CoffeeCard(
-              name: item['name'], 
+              name: item['name'],
               price: item['price'],
               minMeltedCheese: item['minMeltedCheese'] ?? 0,
               minCSN: item['minCSN'] ?? 0,
@@ -179,7 +183,8 @@ class _NoodlesState extends State<Noodles> {
               minSpam: item['minSpam'] ?? 0,
               minKaraage: item['minKaraage'] ?? 0,
               minNori: item['minNori'] ?? 0,
-              );
+              index: index, // Pass the index to identify which item to delete
+            );
           },
         ),
       ],
@@ -198,14 +203,21 @@ class CoffeeCard extends StatelessWidget {
   final int minSpam;
   final int minKaraage;
   final int minNori;
+  final int index; // Added index to identify the product
 
-   const CoffeeCard({
+  const CoffeeCard({
     super.key,
     required this.name,
-    required this.price, 
-    this.minMeltedCheese = 0, 
-    this.minCSN = 0, this.minCSC = 0,this.minCN =  0,
-    this.minEgg = 0,this.minSpam = 0,this.minKaraage = 0,this.minNori = 0,
+    required this.price,
+    this.minMeltedCheese = 0,
+    this.minCSN = 0,
+    this.minCSC = 0,
+    this.minCN = 0,
+    this.minEgg = 0,
+    this.minSpam = 0,
+    this.minKaraage = 0,
+    this.minNori = 0,
+    required this.index, // Receive the index
   });
 
   @override
@@ -232,16 +244,25 @@ class CoffeeCard extends StatelessWidget {
           const SizedBox(height: 25),
           ElevatedButton(
             onPressed: () {
-              Provider.of<CartModel>(context, listen: false).addToCart(name, price); 
-              
-              Provider.of<InventoryModel>(context, listen: false).deductItem('Melted Cheese',minMeltedCheese);
-              Provider.of<InventoryModel>(context, listen: false).deductItem('Cheesy Spicy Samyang Noodles',minCSN);
-              Provider.of<InventoryModel>(context, listen: false).deductItem('Cheesy Spicy Samyang Carbonara',minCSC);
-              Provider.of<InventoryModel>(context, listen: false).deductItem('Cheesy Samyang Noodles',minCN);
-              Provider.of<InventoryModel>(context, listen: false).deductItem('Egg',minEgg);
-              Provider.of<InventoryModel>(context, listen: false).deductItem('Spam',minSpam);
-              Provider.of<InventoryModel>(context, listen: false).deductItem('Chicken Karaage',minKaraage);
-              Provider.of<InventoryModel>(context, listen: false).deductItem('Nori',minNori);
+              Provider.of<CartModel>(context, listen: false)
+                  .addToCart(name, price);
+
+              Provider.of<InventoryModel>(context, listen: false)
+                  .deductItem('Melted Cheese', minMeltedCheese);
+              Provider.of<InventoryModel>(context, listen: false)
+                  .deductItem('Cheesy Spicy Samyang Noodles', minCSN);
+              Provider.of<InventoryModel>(context, listen: false)
+                  .deductItem('Cheesy Spicy Samyang Carbonara', minCSC);
+              Provider.of<InventoryModel>(context, listen: false)
+                  .deductItem('Cheesy Samyang Noodles', minCN);
+              Provider.of<InventoryModel>(context, listen: false)
+                  .deductItem('Egg', minEgg);
+              Provider.of<InventoryModel>(context, listen: false)
+                  .deductItem('Spam', minSpam);
+              Provider.of<InventoryModel>(context, listen: false)
+                  .deductItem('Chicken Karaage', minKaraage);
+              Provider.of<InventoryModel>(context, listen: false)
+                  .deductItem('Nori', minNori);
             },
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,
@@ -258,4 +279,3 @@ class CoffeeCard extends StatelessWidget {
     );
   }
 }
-

@@ -68,7 +68,8 @@ class TransactionModel extends ChangeNotifier {
 
   Future<void> loadTransactions() async {
     final prefs = await SharedPreferences.getInstance();
-    final List<String>? storedTransactions = prefs.getStringList('transactions');
+    final List<String>? storedTransactions =
+        prefs.getStringList('transactions');
 
     if (storedTransactions != null) {
       transactions = storedTransactions
@@ -91,5 +92,10 @@ class TransactionModel extends ChangeNotifier {
         .map((transaction) => jsonEncode(transaction.toJson()))
         .toList();
     await prefs.setStringList('transactions', transactionJsonList);
+  }
+
+  void refundTransaction(Transaction transaction) {
+    transactions.remove(transaction);
+    notifyListeners();
   }
 }

@@ -83,14 +83,12 @@ class _HistoryTransactionScreenState extends State<HistoryTransactionScreen> {
           // Filter transactions based on the selected date
           final filteredTransactions = selectedDate == null
               ? transactionModel.transactions.where((transaction) {
-                  // Compare transaction date with today’s date
                   final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
                   final transactionDate =
                       DateFormat('yyyy-MM-dd').format(transaction.date);
                   return transactionDate == today;
                 }).toList()
               : transactionModel.transactions.where((transaction) {
-                  // Compare transaction date with the selected date
                   final transactionDate =
                       DateFormat('yyyy-MM-dd').format(transaction.date);
                   final selectedDateFormatted =
@@ -103,6 +101,8 @@ class _HistoryTransactionScreenState extends State<HistoryTransactionScreen> {
             0.0,
             (sum, transaction) => sum + transaction.totalAmount,
           );
+          // Calculate cash on hand including total sales
+          final double totalCashOnHand = cashOnHand + totalSales;
 
           return ListView(
             padding: const EdgeInsets.all(16.0),
@@ -123,7 +123,7 @@ class _HistoryTransactionScreenState extends State<HistoryTransactionScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Cash on Hand: ₱${cashOnHand.toStringAsFixed(2)}',
+                        'Cash on Hand: ₱${totalCashOnHand.toStringAsFixed(2)}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -144,8 +144,7 @@ class _HistoryTransactionScreenState extends State<HistoryTransactionScreen> {
                       ),
                     ],
                   ),
-                  if (totalSales >
-                      0) // Show total sales only if there are transactions
+                  if (totalSales > 0)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
@@ -188,13 +187,12 @@ class _HistoryTransactionScreenState extends State<HistoryTransactionScreen> {
                 )
               else
                 ...filteredTransactions.map((transaction) {
-                  // Format the date with time in numeric format
                   final String transactionDateTime =
                       DateFormat('MM/dd/yyyy hh:mm a').format(transaction.date);
 
                   return GestureDetector(
                     onTap: () {
-                      _showOrderDetails(context, transaction);
+                      _showOrderDetails(context, transaction, transactionModel);
                     },
                     child: Container(
                       margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -210,7 +208,7 @@ class _HistoryTransactionScreenState extends State<HistoryTransactionScreen> {
                               fontSize: 16, color: Colors.white),
                         ),
                         subtitle: Text(
-                          transactionDateTime, // Display date with numeric format
+                          transactionDateTime,
                           style: const TextStyle(
                               fontSize: 14, color: Colors.white70),
                         ),
@@ -222,61 +220,54 @@ class _HistoryTransactionScreenState extends State<HistoryTransactionScreen> {
                     ),
                   );
                 }).toList(),
-              const SizedBox(height: 20),
 
-              // Expense Section (conditionally rendered)
-              if (filteredTransactions.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Expenses',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87),
-                    ),
-                    const SizedBox(height: 10),
-                    // Updated container style to match transaction container style
-                    GestureDetector(
-                      onTap: () {
-                        // Handle any onTap functionality you might need
-                      },
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 8.0),
-                        padding: const EdgeInsets.all(12.0),
-                        decoration: BoxDecoration(
-                          color:
-                              kprimaryColor, // Use the same color as transaction container
-                          borderRadius:
-                              BorderRadius.circular(8.0), // Rounded corners
-                        ),
-                        child: ListTile(
-                          title: Text(
-                            '₱${expense.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          subtitle: Text(
-                            selectedDate != null
-                                ? DateFormat('MM/dd/yyyy').format(selectedDate!)
-                                : DateFormat('MM/dd/yyyy')
-                                    .format(DateTime.now()),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.white70,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                          // Removed the trailing icon
-                        ),
+              const SizedBox(height: 10),
+              // Expense Section
+              const Text(
+                'Expenses',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87),
+              ),
+              const SizedBox(height: 10),
+              GestureDetector(
+                onTap: () {
+                  // Handle any onTap functionality you might need
+                },
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  padding: const EdgeInsets.all(12.0),
+                  decoration: BoxDecoration(
+                    color: kprimaryColor,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: ListTile(
+                    title: Text(
+                      '₱${expense.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                  ],
+                    subtitle: Text(
+                      selectedDate != null
+                          ? DateFormat('MM/dd/yyyy').format(selectedDate!)
+                          : DateFormat('MM/dd/yyyy').format(DateTime.now()),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white70,
+                    ),
+                  ),
                 ),
+              ),
             ],
           );
         },
@@ -284,7 +275,9 @@ class _HistoryTransactionScreenState extends State<HistoryTransactionScreen> {
     );
   }
 
-  void _showOrderDetails(BuildContext context, Transaction transaction) {
+//WITH REFUND BUTTON
+  void _showOrderDetails(BuildContext context, Transaction transaction,
+      TransactionModel transactionModel) {
     // Calculate the total amount
     double totalAmount =
         transaction.orders.fold(0, (sum, order) => sum + order.itemPrice);
@@ -372,6 +365,54 @@ class _HistoryTransactionScreenState extends State<HistoryTransactionScreen> {
           ),
           actions: [
             ElevatedButton.icon(
+              icon: const Icon(Icons.undo, color: Colors.white),
+              label: const Text('Refund'),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: kprimaryColor, // Refund button color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              onPressed: () {
+                // Show confirmation dialog before refund
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Confirm Refund'),
+                      content: const Text(
+                          'Are you sure you want to refund this transaction?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context)
+                                .pop(); // Close confirmation dialog
+                          },
+                          child: const Text('Cancel',
+                              style: TextStyle(color: Colors.red)),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            // Perform the refund and close the dialogs
+                            _refundTransaction(transaction, transactionModel);
+                            Navigator.of(context)
+                                .pop(); // Close confirmation dialog
+                            Navigator.of(context)
+                                .pop(); // Close order details dialog
+                          },
+                          child: const Text('Confirm',
+                              style: TextStyle(color: kprimaryColor)),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+            ElevatedButton.icon(
               icon: const Icon(Icons.check_circle_outline),
               label: const Text('Close'),
               style: ElevatedButton.styleFrom(
@@ -389,5 +430,21 @@ class _HistoryTransactionScreenState extends State<HistoryTransactionScreen> {
         );
       },
     );
+  }
+
+//REFUND FUNCTION
+  void _refundTransaction(
+      Transaction transaction, TransactionModel transactionModel) {
+    setState(() {
+      double refundAmount =
+          transaction.orders.fold(0, (sum, order) => sum + order.itemPrice);
+      print("Refund Amount: ₱$refundAmount"); // Debug print
+
+      cashOnHand - refundAmount;
+      print("Updated Cash On Hand: ₱$cashOnHand"); // Debug print
+
+      transactionModel.transactions
+          .remove(transaction); // Remove refunded transaction
+    });
   }
 }
