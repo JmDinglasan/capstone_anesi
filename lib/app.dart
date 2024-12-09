@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Cart',
       initialRoute: '/',
       routes: {
-        '/product': (context) => const Product(),
+        '/product': (context) => Product(),
         '/cart': (context) => const Carts(),
         '/list': (context) => const ListScreen(),
         'mainscreen': (context) => const MainScreen(),

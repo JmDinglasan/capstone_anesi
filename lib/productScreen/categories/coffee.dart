@@ -188,6 +188,7 @@ class _CoffeeState extends State<Coffee> {
               minWhiteChoco: item['minWhiteChoco'] ?? 0,
               minVanilla: item['minVanilla'] ?? 0,
               minIce: item['minIce'] ?? 0,
+              deductionAmount: item['deductionAmount'] ?? 0,
               index: index, // Pass the index to identify which item to delete},
             );
           },
@@ -210,6 +211,7 @@ class CoffeeCard extends StatelessWidget {
   final int minWhiteChoco;
   final int minIce;
   final int minSweetener;
+  final int deductionAmount;
   final int index; // Added index to identify the product
 
   const CoffeeCard({
@@ -226,6 +228,7 @@ class CoffeeCard extends StatelessWidget {
     this.minWhiteChoco = 0,
     this.minIce = 0,
     this.minSweetener = 0,
+    this.deductionAmount = 0,
     required this.index, // Receive the index
   });
 
@@ -252,31 +255,42 @@ class CoffeeCard extends StatelessWidget {
           ),
           const SizedBox(height: 40),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
+              // Add the product to the cart
               Provider.of<CartModel>(context, listen: false)
                   .addToCart(name, price);
 
-              // Deduct the specified amount of INGREDIENTS from inventory
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Coffee', minCoffee);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Milk', minMilk);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Chocolate Syrup', minChoco);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Caramel Syrup', minCaramel);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Strawberry Syrup', minStrawberry);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Ube Syrup', minUbe);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Sweetener', minSweetener);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Vanilla Syrup', minVanilla);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('White Chocolate Syrup', minWhiteChoco);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Ice', minIce);
+              // Create a map of the ingredients with their amounts
+              Map<String, int> ingredients = {
+                'Coffee': minCoffee,
+                'Milk': minMilk,
+                'Chocolate Syrup': minChoco,
+                'Caramel Syrup': minCaramel,
+                'Strawberry Syrup': minStrawberry,
+                'Ube Syrup': minUbe,
+                'Sweetener': minSweetener,
+                'Vanilla Syrup': minVanilla,
+                'White Chocolate Syrup': minWhiteChoco,
+                'Ice': minIce,
+              };
+
+              // Deduct the ingredients from the inventory
+              final inventory =
+                  Provider.of<InventoryModel>(context, listen: false);
+              for (var entry in ingredients.entries) {
+                String ingredientName = entry.key;
+                int amount = entry.value;
+
+                if (amount > 0) {
+                  await inventory.deductItem(ingredientName, amount);
+                }
+              }
+
+              // Log or show a confirmation that the deduction occurred (optional)
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text("Ingredients deducted from inventory")),
+              );
             },
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,

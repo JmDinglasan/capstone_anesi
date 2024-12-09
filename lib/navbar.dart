@@ -26,7 +26,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
 
     // Initialize screens with cartItems being passed to the Carts screen
     screens = [
-      const Product(),
+      Product(),
       const Carts(),
       const ListScreen(),
     ];

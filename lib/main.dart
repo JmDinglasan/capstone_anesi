@@ -55,7 +55,7 @@ class _MyAppState extends State<MyApp> {
       ),
       initialRoute: '/',
       routes: {
-        '/product': (context) => const Product(),
+        '/product': (context) => Product(),
         '/cart': (context) => const Carts(),
         '/list': (context) => const ListScreen(),
         'mainscreen': (context) => const MainScreen(),

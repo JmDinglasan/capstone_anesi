@@ -222,52 +222,54 @@ class _HistoryTransactionScreenState extends State<HistoryTransactionScreen> {
                 }).toList(),
 
               const SizedBox(height: 10),
-              // Expense Section
-              const Text(
-                'Expenses',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87),
-              ),
-              const SizedBox(height: 10),
-              GestureDetector(
-                onTap: () {
-                  // Handle any onTap functionality you might need
-                },
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 8.0),
-                  padding: const EdgeInsets.all(12.0),
-                  decoration: BoxDecoration(
-                    color: kprimaryColor,
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: ListTile(
-                    title: Text(
-                      '₱${expense.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+// Expense Section
+              if (expense > 0) ...[
+                const Text(
+                  'Expenses',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87),
+                ),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: () {
+                    // Handle any onTap functionality you might need
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                    padding: const EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      color: kprimaryColor,
+                      borderRadius: BorderRadius.circular(8.0),
                     ),
-                    subtitle: Text(
-                      selectedDate != null
-                          ? DateFormat('MM/dd/yyyy').format(selectedDate!)
-                          : DateFormat('MM/dd/yyyy').format(DateTime.now()),
-                      style: const TextStyle(
-                        fontSize: 14,
+                    child: ListTile(
+                      title: Text(
+                        '₱${expense.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      subtitle: Text(
+                        selectedDate != null
+                            ? DateFormat('MM/dd/yyyy').format(selectedDate!)
+                            : DateFormat('MM/dd/yyyy').format(DateTime.now()),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      trailing: const Icon(
+                        Icons.arrow_forward_ios,
                         color: Colors.white70,
-                        fontWeight: FontWeight.w400,
                       ),
-                    ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios,
-                      color: Colors.white70,
                     ),
                   ),
                 ),
-              ),
+              ],
             ],
           );
         },
