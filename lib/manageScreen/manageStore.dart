@@ -297,7 +297,7 @@ class _EditCashOnHandPageState extends State<EditCashOnHandPage> {
               controller: _cashOnHandController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText: 'Cash on Hand',
+                labelText: 'Set initial cash on hand',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -341,7 +341,7 @@ class _EditExpensesPageState extends State<EditExpensesPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Expenses'),
+          title: const Text('Set expenses made'),
           content: const Text('Expenses has been successfully set.'),
           actions: [
             TextButton(

@@ -1,4 +1,4 @@
-//ADD PRODUCT SCREEN
+// ADD PRODUCT SCREEN
 import 'package:capstone_anesi/app.dart';
 import 'package:flutter/material.dart';
 
@@ -50,38 +50,62 @@ class _AddProductFormState extends State<AddProductFormNoodles> {
             ),
             ElevatedButton(
               onPressed: () {
-                final newProduct = {
-                  'name': _nameController.text,
-                  'price': double.tryParse(_priceController.text) ?? 0.0,
-                  'category': _categoryController.text,
-                  'minCSN': int.tryParse(_minCSNController.text) ?? 0,
-                };
-                widget.updateItems(newProduct);
+                // Check if any text field is empty
+                if (_nameController.text.isEmpty ||
+                    _priceController.text.isEmpty ||
+                    _categoryController.text.isEmpty ||
+                    _minCSNController.text.isEmpty) {
+                  // Show an alert dialog if any text field is empty
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Incomplete Form'),
+                        content: const Text('Please fill in all the required fields.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(); // Close the dialog
+                            },
+                            child: const Text('OK'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  // If all fields are filled, create a new product
+                  final newProduct = {
+                    'name': _nameController.text,
+                    'price': double.tryParse(_priceController.text) ?? 0.0,
+                    'category': _categoryController.text,
+                    'minCSN': int.tryParse(_minCSNController.text) ?? 0,
+                  };
+                  widget.updateItems(newProduct);
 
-                // Show success dialog after CREATING
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Success'),
-                      content: const Text(
-                          'A new product has been created successfully.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            //PROCEEDS TO MAIN SCREEN AFTER EDIT
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const MainScreen()),
-                            );
-                          },
-                          child: const Text('OK'),
-                        ),
-                      ],
-                    );
-                  },
-                );
+                  // Show success dialog after creating the product
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Success'),
+                        content: const Text('A new product has been created successfully.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              // Proceeds to main screen after creation
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const MainScreen()),
+                              );
+                            },
+                            child: const Text('OK'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
               },
               child: const Text('Add Product'),
             ),

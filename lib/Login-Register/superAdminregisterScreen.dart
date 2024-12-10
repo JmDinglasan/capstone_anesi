@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:capstone_anesi/loginScreen.dart';
+import 'package:capstone_anesi/Login-Register/loginScreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -17,18 +17,23 @@ class _RegisterState extends State<Register> {
   final _auth = FirebaseAuth.instance;
 
   final TextEditingController passwordController = new TextEditingController();
-  final TextEditingController confirmpassController = new TextEditingController();
+  final TextEditingController confirmpassController =
+      new TextEditingController();
   final TextEditingController firstNameController = new TextEditingController();
   final TextEditingController lastNameController = new TextEditingController();
   final TextEditingController emailController = new TextEditingController();
   final TextEditingController contactNoController = new TextEditingController();
-  
+
   bool _isObscure = true;
   bool _isObscure2 = true;
   File? file;
 
   // Directly setting the role to "Super Admin"
-  var role = "Super Admin"; // You can change this to "Admin" or "Staff" as needed
+  var role = "Staff"; // You can change this to "Admin" or "Staff" as needed
+
+  // Add this variable to store the selected role
+  String? selectedRole; // Holds the current selected value
+  int roleValue = 0; // Holds the corresponding role val
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +79,7 @@ class _RegisterState extends State<Register> {
                         SizedBox(
                           height: 50,
                         ),
-                        
+
                         // First Name Field
                         TextFormField(
                           controller: firstNameController,
@@ -101,7 +106,7 @@ class _RegisterState extends State<Register> {
                             return null;
                           },
                         ),
-                        
+
                         // Last Name Field
                         TextFormField(
                           controller: lastNameController,
@@ -128,7 +133,7 @@ class _RegisterState extends State<Register> {
                             return null;
                           },
                         ),
-                        
+
                         // Contact Number Field
                         TextFormField(
                           controller: contactNoController,
@@ -160,7 +165,7 @@ class _RegisterState extends State<Register> {
                           onChanged: (value) {},
                           keyboardType: TextInputType.phone,
                         ),
-                        
+
                         // Email Field
                         TextFormField(
                           controller: emailController,
@@ -184,13 +189,14 @@ class _RegisterState extends State<Register> {
                             if (value!.isEmpty) {
                               return "Email cannot be empty";
                             }
-                            if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                            if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                                .hasMatch(value)) {
                               return "Please enter a valid email address";
                             }
                             return null;
                           },
                         ),
-                        
+
                         // Password Field
                         SizedBox(
                           height: 20,
@@ -234,7 +240,7 @@ class _RegisterState extends State<Register> {
                             return null;
                           },
                         ),
-                        
+
                         // Confirm Password Field
                         SizedBox(
                           height: 20,
@@ -275,11 +281,56 @@ class _RegisterState extends State<Register> {
                             return null;
                           },
                         ),
-                        
+
                         SizedBox(
                           height: 20,
                         ),
-                        
+
+                        //DROP-DOWN SELECTION FOR ROLE
+                        DropdownButtonFormField<String>(
+                          value: selectedRole,
+                          hint: Text("Select Role"),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide(color: Colors.grey),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide(color: Colors.green),
+                            ),
+                          ),
+                          items: const [
+                            DropdownMenuItem(
+                              value: "Staff",
+                              child: Text("Staff"),
+                            ),
+                            DropdownMenuItem(
+                              value: "Admin",
+                              child: Text("Admin"),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            setState(() {
+                              selectedRole = value;
+                              roleValue = value == "Admin"
+                                  ? 1
+                                  : 2; // Map role to roleValue
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return "Please select a role";
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+
                         // Buttons for Sign In and Register
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -287,7 +338,8 @@ class _RegisterState extends State<Register> {
                           children: [
                             MaterialButton(
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(Radius.circular(20.0))),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20.0))),
                               elevation: 5.0,
                               height: 40,
                               onPressed: () {
@@ -300,24 +352,28 @@ class _RegisterState extends State<Register> {
                               },
                               child: Text(
                                 "Sign In",
-                                style: TextStyle(fontSize: 20, color: Colors.white),
+                                style: TextStyle(
+                                    fontSize: 20, color: Colors.white),
                               ),
                               color: Colors.green[900],
                             ),
                             MaterialButton(
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(Radius.circular(20.0))),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20.0))),
                               elevation: 5.0,
                               height: 40,
                               onPressed: () {
                                 setState(() {
                                   showProgress = true;
                                 });
-                                signUp(emailController.text, passwordController.text, role);
+                                signUp(emailController.text,
+                                    passwordController.text, role);
                               },
                               child: Text(
                                 "Register",
-                                style: TextStyle(fontSize: 20, color: Colors.white),
+                                style: TextStyle(
+                                    fontSize: 20, color: Colors.white),
                               ),
                               color: Colors.brown[400],
                             ),
@@ -340,17 +396,12 @@ class _RegisterState extends State<Register> {
 
   void signUp(String email, String password, String role) async {
     if (_formkey.currentState!.validate()) {
-      // Set default role to "Super Admin" (you can change this to "Admin" or "Staff")
-      String finalRole = role.isEmpty ? "Super Admin" : role;
-
       await _auth
           .createUserWithEmailAndPassword(email: email, password: password)
           .then((value) {
-        // On success, save user details to Firestore
-        postDetailsToFirestore(email, finalRole);
-      })
-          .catchError((e) {
-        // Handle the error properly
+        postDetailsToFirestore(
+            email, roleValue); // Pass the roleValue instead of role name
+      }).catchError((e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Error: ${e.toString()}"),
@@ -361,20 +412,21 @@ class _RegisterState extends State<Register> {
     }
   }
 
-  postDetailsToFirestore(String email, String role) async {
+  postDetailsToFirestore(String email, int roleValue) async {
     FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
     var user = _auth.currentUser;
-    CollectionReference ref = FirebaseFirestore.instance.collection('tbl_users');
-    
+    CollectionReference ref =
+        FirebaseFirestore.instance.collection('tbl_users');
+
     // Map the role based on the user's selection
-    int roleValue;
-    if (role == "Super Admin") {
-      roleValue = 0; // Super Admin
-    } else if (role == "Admin") {
-      roleValue = 1; // Admin
-    } else {
-      roleValue = 2; // Default to "Staff"
-    }
+    // int roleValue;
+    // if (role == "Super Admin") {
+    //   roleValue = 0; // Super Admin
+    // } else if (role == "Admin") {
+    //   roleValue = 1; // Admin
+    // } else {
+    //   roleValue = 2; // Default to "Staff"
+    // }
 
     ref.doc(user!.uid).set({
       'fld_contactNo': contactNoController.text,
@@ -384,7 +436,6 @@ class _RegisterState extends State<Register> {
       'fld_role': roleValue, // Store the role value
     });
 
-    // Navigate to login page after registration
     Navigator.pushReplacement(
         context, MaterialPageRoute(builder: (context) => LoginPage()));
   }

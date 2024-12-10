@@ -1,6 +1,6 @@
 import 'package:capstone_anesi/cartScreen/cart.dart';
 import 'package:capstone_anesi/constant.dart';
-import 'package:capstone_anesi/listsScreen/lists.dart';
+import 'package:capstone_anesi/paymentScreen/payment.dart';
 import 'package:capstone_anesi/productScreen/product.dart';
 import 'package:flutter/material.dart';
 

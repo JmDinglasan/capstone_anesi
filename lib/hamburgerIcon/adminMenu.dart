@@ -1,16 +1,19 @@
 import 'package:capstone_anesi/app.dart';
 import 'package:capstone_anesi/constant.dart';
+//import 'package:capstone_anesi/hamburgerIcon/Accounts.dart';
+import 'package:capstone_anesi/manageAccounts/AdminAccounts.dart';
 import 'package:capstone_anesi/historyScreen/HistoryTransaction.dart';
 import 'package:capstone_anesi/inventoryScreen/inventory.dart';
-import 'package:capstone_anesi/loginScreen.dart';
+import 'package:capstone_anesi/Login-Register/loginScreen.dart';
 // import 'package:capstone_anesi/main.dart';
 import 'package:capstone_anesi/manageScreen/manageStore.dart';
 import 'package:capstone_anesi/reportScreen/report.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class AppDrawer extends StatelessWidget {
-  const AppDrawer({super.key});
+class AdminAppDrawer extends StatelessWidget {
+  const AdminAppDrawer({super.key});
 
   Future<void> logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
@@ -49,6 +52,18 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
+  Future<String?> getFirstName() async {
+    var user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('tbl_users')
+          .doc(user.uid)
+          .get();
+      return userDoc['fld_firstname'];
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -60,39 +75,85 @@ class AppDrawer extends StatelessWidget {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: <Widget>[
-                  const DrawerHeader(
-                    decoration: BoxDecoration(
-                      color: kprimaryColor, // DrawerHeader color
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CircleAvatar(
-                          radius: 30,
-                          backgroundImage:
-                              AssetImage('assets/logo.jpg'), // Your logo asset
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'ANESI',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                  FutureBuilder<String?>(
+                    future: getFirstName(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const DrawerHeader(
+                          decoration: BoxDecoration(
+                            color: kprimaryColor, // DrawerHeader color
                           ),
-                        ),
-                        Text(
-                          'Sugar Road, Carmona Cavite.',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
+                          child: Center(
+                            child:
+                                CircularProgressIndicator(color: Colors.white),
                           ),
-                        ),
-                      ],
-                    ),
+                        );
+                      } else if (snapshot.hasError || !snapshot.hasData) {
+                        return const DrawerHeader(
+                          decoration: BoxDecoration(
+                            color: kprimaryColor, // DrawerHeader color
+                          ),
+                          child: Text(
+                            'Welcome!',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                            ),
+                          ),
+                        );
+                      } else {
+                        return DrawerHeader(
+                          decoration: const BoxDecoration(
+                            color: kprimaryColor, // DrawerHeader color
+                          ),
+                          child: Row(
+                            children: [
+                              const CircleAvatar(
+                                radius: 24, // Adjust the radius as needed
+                                backgroundColor: Colors.white,
+                                child: Icon(
+                                  Icons.account_circle,
+                                  color: kprimaryColor,
+                                  size: 40, // Adjust the icon size as needed
+                                ),
+                              ),
+                              const SizedBox(
+                                  width:
+                                      12), // Add space between the avatar and text
+                              Expanded(
+                                child: Text(
+                                  'Welcome, ${snapshot.data}!',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                    },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.point_of_sale, color: Colors.white),
+                    leading: const Icon(Icons.manage_accounts_rounded,
+                        color: Colors.white),
+                    title: const Text(
+                      'Register an account',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    tileColor: kprimaryColor, // ListTile background color
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const AdminAccountsPage()),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading:
+                        const Icon(Icons.point_of_sale, color: Colors.white),
                     title: const Text(
                       'Cashier',
                       style: TextStyle(color: Colors.white),
@@ -101,7 +162,8 @@ class AppDrawer extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const MainScreen()),
+                        MaterialPageRoute(
+                            builder: (context) => const AdminMainScreen()),
                       );
                     },
                   ),
@@ -116,13 +178,14 @@ class AppDrawer extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const HistoryTransactionScreen()),
+                            builder: (context) =>
+                                const HistoryTransactionScreen()),
                       );
                     },
                   ),
                   ListTile(
-                    leading:
-                        const Icon(Icons.assessment_outlined, color: Colors.white),
+                    leading: const Icon(Icons.assessment_outlined,
+                        color: Colors.white),
                     title: const Text(
                       'Report',
                       style: TextStyle(color: Colors.white),
@@ -131,7 +194,8 @@ class AppDrawer extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const ReportScreen()),
+                        MaterialPageRoute(
+                            builder: (context) => const ReportScreen()),
                       );
                     },
                   ),
@@ -151,8 +215,8 @@ class AppDrawer extends StatelessWidget {
                     },
                   ),
                   ListTile(
-                    leading:
-                        const Icon(Icons.inventory_outlined, color: Colors.white),
+                    leading: const Icon(Icons.inventory_outlined,
+                        color: Colors.white),
                     title: const Text(
                       'View Stocks',
                       style: TextStyle(color: Colors.white),
@@ -170,7 +234,8 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20.0), // Adds space around the logout button
+              padding: const EdgeInsets.all(
+                  20.0), // Adds space around the logout button
               child: ListTile(
                 leading: const Icon(Icons.logout, color: Colors.white),
                 title: const Text(

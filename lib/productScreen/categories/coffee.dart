@@ -272,6 +272,7 @@ class CoffeeCard extends StatelessWidget {
                 'Vanilla Syrup': minVanilla,
                 'White Chocolate Syrup': minWhiteChoco,
                 'Ice': minIce,
+                'deductionAmount': deductionAmount,
               };
 
               // Deduct the ingredients from the inventory

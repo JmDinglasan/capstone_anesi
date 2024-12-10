@@ -1,10 +1,12 @@
 import 'package:capstone_anesi/cartScreen/cart.dart';
+import 'package:capstone_anesi/hamburgerIcon/adminMenu.dart';
 // import 'package:capstone_anesi/cartScreen/cartmodel.dart';
 // import 'package:capstone_anesi/cartScreen/noodlesModel.dart';
 // import 'package:capstone_anesi/historyScreen/transactionModel.dart';
-import 'package:capstone_anesi/hamburgerIcon/hamburger.dart';
+import 'package:capstone_anesi/hamburgerIcon/superAdminMenu.dart';
+import 'package:capstone_anesi/hamburgerIcon/staffMenu.dart';
 // import 'package:capstone_anesi/inventoryScreen/inventorymodel.dart';
-import 'package:capstone_anesi/listsScreen/lists.dart';
+import 'package:capstone_anesi/paymentScreen/payment.dart';
 import 'package:capstone_anesi/productScreen/product.dart';
 import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
@@ -42,6 +44,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+//ADMIN / SUPER ADMIN SCREEN
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
 
@@ -64,7 +67,55 @@ class MainScreen extends StatelessWidget {
       drawer: const AppDrawer(),
       body: const BottomNavBar(),
     );
-  }
+  }  
+}
 
-  
+class StaffMainScreen extends StatelessWidget {
+  const StaffMainScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Anesi POS'),
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            );
+          },
+        ),
+      ),
+      drawer: const StaffAppDrawer(),
+      body: const BottomNavBar(),
+    );
+  }  
+}
+
+class AdminMainScreen extends StatelessWidget {
+  const AdminMainScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Anesi POS'),
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            );
+          },
+        ),
+      ),
+      drawer: const AdminAppDrawer(),
+      body: const BottomNavBar(),
+    );
+  }  
 }
