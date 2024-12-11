@@ -4,8 +4,8 @@ import 'package:capstone_anesi/constant.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-class UserAccountsPage extends StatelessWidget {
-  const UserAccountsPage({super.key});
+class SuperAdminAccountsPage extends StatelessWidget {
+  const SuperAdminAccountsPage({super.key});
 
   Future<List<Map<String, dynamic>>> getUsersList() async {
     QuerySnapshot userCollection =
@@ -97,6 +97,57 @@ class UserAccountsPage extends StatelessWidget {
     );
   }
 
+  Future<void> deleteUser(BuildContext context, String userId) async {
+    // Show confirmation dialog before deleting the user
+    bool? confirmDelete = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this account?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(false); // No
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MainScreen()),
+                );
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmDelete == true) {
+      try {
+        // Delete user from Firestore
+        await FirebaseFirestore.instance
+            .collection('tbl_users')
+            .doc(userId)
+            .delete();
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User deleted successfully')),
+        );
+      } catch (e) {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete user: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -158,19 +209,31 @@ class UserAccountsPage extends StatelessWidget {
                           '${user['firstName']} (${user['role'] == 1 ? 'Admin' : 'Staff'})',
                           style: const TextStyle(fontSize: 16),
                         ),
-                        trailing: DropdownButton<String>(
-                          value: user['role'] == 1 ? 'Admin' : 'Staff',
-                          items: const [
-                            DropdownMenuItem(
-                                value: 'Admin', child: Text('Admin')),
-                            DropdownMenuItem(
-                                value: 'Staff', child: Text('Staff')),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            DropdownButton<String>(
+                              value: user['role'] == 1 ? 'Admin' : 'Staff',
+                              items: const [
+                                DropdownMenuItem(
+                                    value: 'Admin', child: Text('Admin')),
+                                DropdownMenuItem(
+                                    value: 'Staff', child: Text('Staff')),
+                              ],
+                              onChanged: (value) {
+                                int newRole = value == 'Admin' ? 1 : 2;
+                                showRoleChangeConfirmation(
+                                    context, user['id'], newRole);
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () {
+                                // Call delete function on pressing the delete icon
+                                deleteUser(context, user['id']);
+                              },
+                            ),
                           ],
-                          onChanged: (value) {
-                            int newRole = value == 'Admin' ? 1 : 2;
-                            showRoleChangeConfirmation(
-                                context, user['id'], newRole);
-                          },
                         ),
                       );
                     }).toList(),

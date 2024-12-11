@@ -10,7 +10,6 @@ void checkAndShowLowStockDialog(BuildContext context) {
   // List of items to check for low stock
   List<String> itemsToCheck = [
     'Coffee',
-    'Ice',
     'Chocolate Syrup',
     'Caramel Syrup',
     'Ube Syrup',
@@ -27,7 +26,6 @@ void checkAndShowLowStockDialog(BuildContext context) {
     'Chicken Karaage',
     'Spam',
     'Egg',
-    'Nori',
   ];
 
   // Check stock for each item and show alert if it's low

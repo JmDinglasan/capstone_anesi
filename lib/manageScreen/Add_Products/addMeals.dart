@@ -1,5 +1,6 @@
 // ADD PRODUCT SCREEN
 import 'package:capstone_anesi/app.dart';
+import 'package:capstone_anesi/constant.dart';
 import 'package:flutter/material.dart';
 
 class AddProductFormMeals extends StatefulWidget {
@@ -21,95 +22,196 @@ class _AddProductFormState extends State<AddProductFormMeals> {
   final _priceController = TextEditingController();
   final _categoryController = TextEditingController();
   final _minKaraageController = TextEditingController();
+  final _minMeltedCheeseController = TextEditingController();
+  final _minFriesController = TextEditingController();
+  final _minEggController = TextEditingController();
+  final _minSpamController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Product')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Product Name'),
-            ),
-            TextField(
-              controller: _priceController,
-              decoration: const InputDecoration(labelText: 'Price'),
-              keyboardType: TextInputType.number,
-            ),
-            TextField(
-              controller: _categoryController,
-              decoration: const InputDecoration(labelText: 'Category'),
-            ),
-            TextField(
-              controller: _minKaraageController,
-              decoration: const InputDecoration(labelText: 'Chicken Karaage'),
-              keyboardType: TextInputType.number,
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // Check if any text field is empty
-                if (_nameController.text.isEmpty ||
-                    _priceController.text.isEmpty ||
-                    _categoryController.text.isEmpty ||
-                    _minKaraageController.text.isEmpty) {
-                  // Show an alert dialog if any text field is empty
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Incomplete Form'),
-                        content: const Text('Please fill in all the required fields.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(); // Close the dialog
-                            },
-                            child: const Text('OK'),
-                          ),
-                        ],
+      appBar: AppBar(
+        title: const Text('New Meal / Snack Product'),
+        backgroundColor: kprimaryColor,
+        foregroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Enter Product Details',
+                style: TextStyle(
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                  color: kprimaryColor,
+                ),
+              ),
+              const SizedBox(height: 16.0),
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Product Name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16.0),
+              TextField(
+                controller: _categoryController,
+                decoration: const InputDecoration(
+                  labelText: 'Sub-Category',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16.0),
+              TextField(
+                controller: _priceController,
+                decoration: const InputDecoration(
+                  labelText: 'Price',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 26.0),
+              const Text(
+                'Enter Required Amount of Items (leave blank if n/a):',
+                style: TextStyle(
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                  color: kprimaryColor,
+                ),
+              ),
+              const SizedBox(height: 16.0),
+              TextField(
+                controller: _minEggController,
+                decoration: const InputDecoration(
+                  labelText: 'Egg',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16.0),
+              TextField(
+                controller: _minSpamController,
+                decoration: const InputDecoration(
+                  labelText: 'Spam',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16.0),
+              TextField(
+                controller: _minKaraageController,
+                decoration: const InputDecoration(
+                  labelText: 'Chicken Karaage',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16.0),
+              TextField(
+                controller: _minFriesController,
+                decoration: const InputDecoration(
+                  labelText: 'Fries',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16.0),
+              TextField(
+                controller: _minMeltedCheeseController,
+                decoration: const InputDecoration(
+                  labelText: 'Melted Cheese',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 24.0),
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kprimaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32.0,
+                      vertical: 12.0,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                  onPressed: () {
+                    if (_nameController.text.isEmpty ||
+                        _priceController.text.isEmpty ||
+                        _categoryController.text.isEmpty) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Incomplete Form'),
+                            content: const Text(
+                                'Please fill in all the required fields.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          );
+                        },
                       );
-                    },
-                  );
-                } else {
-                  // If all fields are filled, create a new product
-                  final newProduct = {
-                    'name': _nameController.text,
-                    'price': double.tryParse(_priceController.text) ?? 0.0,
-                    'category': _categoryController.text,
-                    'minKaraage': int.tryParse(_minKaraageController.text) ?? 0,
-                  };
-                  widget.updateItems(newProduct);
+                    } else {
+                      final category = _categoryController.text.toUpperCase();
+                      final newProduct = {
+                        'name': _nameController.text,
+                        'price': double.tryParse(_priceController.text) ?? 0.0,
+                        'category': category,
+                        'minMeltedCheese':
+                            int.tryParse(_minMeltedCheeseController.text) ?? 0,
+                        'minEgg': int.tryParse(_minEggController.text) ?? 0,
+                        'minSpam': int.tryParse(_minSpamController.text) ?? 0,
+                        'minKaraage':
+                            int.tryParse(_minKaraageController.text) ?? 0,
+                      };
+                      widget.updateItems(newProduct);
 
-                  // Show success dialog after creating the product
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        title: const Text('Success'),
-                        content: const Text('A new product has been created successfully.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              // Proceeds to main screen after creation
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const MainScreen()),
-                              );
-                            },
-                            child: const Text('OK'),
-                          ),
-                        ],
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Success'),
+                            content: const Text(
+                                'A new product has been created successfully.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const MainScreen()),
+                                  );
+                                },
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          );
+                        },
                       );
-                    },
-                  );
-                }
-              },
-              child: const Text('Add Product'),
-            ),
-          ],
+                    }
+                  },
+                  child: const Text(
+                    'Add Product',
+                    style: TextStyle(fontSize: 16.0),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

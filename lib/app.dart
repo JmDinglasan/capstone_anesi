@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-//ADMIN / SUPER ADMIN SCREEN
+// SUPER ADMIN SCREEN
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
 

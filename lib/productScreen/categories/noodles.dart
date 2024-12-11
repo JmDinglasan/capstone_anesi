@@ -98,7 +98,7 @@ class _NoodlesState extends State<Noodles> {
             Expanded(
               child: ListView(
                 children: [
-                  _buildSection('SAMYANG NOODLES'),
+                  _buildSection('NOODLES'),
                   const SizedBox(height: 35),
                   // _buildSection('SHARING'),
                   // const SizedBox(height: 35),
@@ -182,7 +182,6 @@ class _NoodlesState extends State<Noodles> {
               minEgg: item['minEgg'] ?? 0,
               minSpam: item['minSpam'] ?? 0,
               minKaraage: item['minKaraage'] ?? 0,
-              minNori: item['minNori'] ?? 0,
               index: index, // Pass the index to identify which item to delete
             );
           },
@@ -202,7 +201,6 @@ class CoffeeCard extends StatelessWidget {
   final int minEgg;
   final int minSpam;
   final int minKaraage;
-  final int minNori;
   final int index; // Added index to identify the product
 
   const CoffeeCard({
@@ -216,7 +214,6 @@ class CoffeeCard extends StatelessWidget {
     this.minEgg = 0,
     this.minSpam = 0,
     this.minKaraage = 0,
-    this.minNori = 0,
     required this.index, // Receive the index
   });
 
@@ -261,8 +258,10 @@ class CoffeeCard extends StatelessWidget {
                   .deductItem('Spam', minSpam);
               Provider.of<InventoryModel>(context, listen: false)
                   .deductItem('Chicken Karaage', minKaraage);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Nori', minNori);
+                  
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("added to cart")),
+              );
             },
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,

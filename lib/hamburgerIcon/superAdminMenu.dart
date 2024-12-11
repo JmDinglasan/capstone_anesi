@@ -146,7 +146,7 @@ class AppDrawer extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const UserAccountsPage()),
+                            builder: (context) => const SuperAdminAccountsPage()),
                       );
                     },
                   ),

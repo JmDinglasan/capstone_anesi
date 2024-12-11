@@ -11,7 +11,6 @@ void checkAndShowLowStockDialog(BuildContext context) {
 
   List<String> itemsToCheck = [
     'Coffee',
-    'Ice',
     'Chocolate Syrup',
     'Caramel Syrup',
     'Ube Syrup',
@@ -28,7 +27,6 @@ void checkAndShowLowStockDialog(BuildContext context) {
     'Chicken Karaage',
     'Spam',
     'Egg',
-    'Nori',
   ];
 
   for (String item in itemsToCheck) {
@@ -85,7 +83,7 @@ void _showLowStockDialog2(BuildContext context, String itemName, int stock) {
               ),
               SizedBox(height: 8),
               Text(
-                'Current stock: $stock',
+                'Current stock: $stock (g/ml/pcs)',
                 style: TextStyle(
                   color: Colors.red,
                   fontSize: 14,

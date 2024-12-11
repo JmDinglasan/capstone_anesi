@@ -37,8 +37,8 @@ Widget build(BuildContext context) {
             children: [
               // Circular container for logo
               Container(
-                height: 150,
-                width: 150,
+                height: 130,
+                width: 130,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white,

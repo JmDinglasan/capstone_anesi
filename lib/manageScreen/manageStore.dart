@@ -1,13 +1,8 @@
 import 'dart:convert';
-//import 'package:capstone_anesi/main.dart';
 import 'package:capstone_anesi/app.dart';
 import 'package:capstone_anesi/constant.dart';
 import 'package:capstone_anesi/manageScreen/Add_Products/MainAddProduct.dart';
-// import 'package:capstone_anesi/manageScreen/Add_Products/addCoffee.dart';
-// import 'package:capstone_anesi/manageScreen/Add_Products/addMeals.dart';
-// import 'package:capstone_anesi/manageScreen/Add_Products/addNoodles.dart';
-import 'package:capstone_anesi/manageScreen/Product_List/product_List.dart';
-// import 'package:capstone_anesi/manageScreen/productList.dart';
+import 'package:capstone_anesi/manageScreen/product_List.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

@@ -182,7 +182,7 @@ class _SnacksState extends State<Snacks> {
             return CoffeeCard(
               name: item['name'],
               price: item['price'],
-              minMeltedCheese: item['minMeltedCheese'] ?? 0,
+              minCheese: item['minCheese'] ?? 0,
               minEgg: item['minEgg'] ?? 0,
               minSpam: item['minSpam'] ?? 0,
               minKaraage: item['minKaraage'] ?? 0,
@@ -200,7 +200,7 @@ class _SnacksState extends State<Snacks> {
 class CoffeeCard extends StatelessWidget {
   final String name;
   final double price;
-  final int minMeltedCheese;
+  final int minCheese;
   final int minEgg;
   final int minSpam;
   final int minKaraage;
@@ -208,12 +208,11 @@ class CoffeeCard extends StatelessWidget {
   final int minFries;
   final int index; // Added index to identify the product
 
-
   const CoffeeCard({
     super.key,
     required this.name,
     required this.price,
-    this.minMeltedCheese = 0,
+    this.minCheese = 0,
     this.minFries = 0,
     this.minEgg = 0,
     this.minSpam = 0,
@@ -250,7 +249,7 @@ class CoffeeCard extends StatelessWidget {
                   .addToCart(name, price);
 
               Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Melted Cheese', minMeltedCheese);
+                  .deductItem('Cheese', minCheese);
               Provider.of<InventoryModel>(context, listen: false)
                   .deductItem('Egg', minEgg);
               Provider.of<InventoryModel>(context, listen: false)
@@ -261,6 +260,10 @@ class CoffeeCard extends StatelessWidget {
                   .deductItem('Nori', minNori);
               Provider.of<InventoryModel>(context, listen: false)
                   .deductItem('Fries', minFries);
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("added to cart")),
+              );
             },
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,

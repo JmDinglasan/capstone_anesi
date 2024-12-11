@@ -290,7 +290,7 @@ class CoffeeCard extends StatelessWidget {
               // Log or show a confirmation that the deduction occurred (optional)
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                    content: Text("Ingredients deducted from inventory")),
+                    content: Text("added to cart")),
               );
             },
             style: ElevatedButton.styleFrom(
