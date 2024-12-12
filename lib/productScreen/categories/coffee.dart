@@ -21,15 +21,15 @@ class _CoffeeState extends State<Coffee> {
   List<Map<String, dynamic>> allItems = [
     // Initial hardcoded items (as before)
     {
-      'name': 'Snickers Iced Coffee',
-      'price': 130.00,
-      'category': 'COFFEE',
-      'minCoffee': 150,
-      'minCaramel': 40,
-      'minSweetener': 30,
-      'minChoco': 20,
-      'minIce': 15,
-      'minMilk': 200
+      // 'name': 'Snickers Iced Coffee',
+      // 'price': 130.00,
+      // 'category': 'COFFEE',
+      // 'minCoffee': 150,
+      // 'minCaramel': 40,
+      // 'minSweetener': 30,
+      // 'minChoco': 20,
+      // 'minIce': 15,
+      // 'minMilk': 200
     },
     // Add all other items here...
   ];
@@ -87,69 +87,83 @@ class _CoffeeState extends State<Coffee> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search Menu...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Determine whether to use grid or list based on screen width
+            final isWideScreen = constraints.maxWidth > 600;
+            final isSmallScreen = constraints.maxWidth <= 600;
+
+            return Column(
+              children: [
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search Menu...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView(
-                children: [
-                  _buildSection('COFFEE'),
-                  const SizedBox(height: 35),
-                  _buildSection('NON-COFFEE'),
-                  const SizedBox(height: 35),
-                  _buildSection('ADD-ONS DRINKS'),
-                ],
-              ),
-            ),
-            Consumer<CartModel>(builder: (context, cartModel, child) {
-              return cartModel.items.isNotEmpty
-                  ? Container(
-                      padding: const EdgeInsets.all(16),
-                      color: Colors.grey[200],
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView(
+                    children: [
+                      _buildSection('COFFEE', isWideScreen, isSmallScreen),
+                      const SizedBox(height: 35),
+                      _buildSection('NON-COFFEE', isWideScreen, isSmallScreen),
+                      const SizedBox(height: 35),
+                      _buildSection(
+                          'ADD-ONS DRINKS', isWideScreen, isSmallScreen),
+                      const SizedBox(height: 35),
+                      _buildSection('TEA', isWideScreen, isSmallScreen),
+                      const SizedBox(height: 35),
+                      _buildSection('FRAPPUCCINO', isWideScreen, isSmallScreen),
+                      const SizedBox(height: 35),
+                    ],
+                  ),
+                ),
+                Consumer<CartModel>(builder: (context, cartModel, child) {
+                  return cartModel.items.isNotEmpty
+                      ? Container(
+                          padding: const EdgeInsets.all(16),
+                          color: Colors.grey[200],
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Icon(Icons.shopping_cart),
-                              const SizedBox(width: 8),
-                              Text('${cartModel.items.length} Items'),
+                              Row(
+                                children: [
+                                  const Icon(Icons.shopping_cart),
+                                  const SizedBox(width: 8),
+                                  Text('${cartModel.items.length} Items'),
+                                ],
+                              ),
+                              Text(
+                                  'Total: ${cartModel.totalPrice.toStringAsFixed(2)}'),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => const Carts(),
+                                    ),
+                                  );
+                                },
+                                child: const Text('Go to Cart'),
+                              ),
                             ],
                           ),
-                          Text(
-                              'Total: ${cartModel.totalPrice.toStringAsFixed(2)}'),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const Carts(),
-                                ),
-                              );
-                            },
-                            child: const Text('Go to Cart'),
-                          ),
-                        ],
-                      ),
-                    )
-                  : const SizedBox.shrink();
-            }),
-          ],
+                        )
+                      : const SizedBox.shrink();
+                }),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildSection(String category) {
+  Widget _buildSection(String category, bool isWideScreen, bool isSmallScreen) {
     final categoryItems =
         filteredItems.where((item) => item['category'] == category).toList();
 
@@ -163,14 +177,19 @@ class _CoffeeState extends State<Coffee> {
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
+        // Adjust the grid based on screen size
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: isSmallScreen
+                ? 2
+                : (isWideScreen
+                    ? 5
+                    : 2), // 2 items on mobile, 4 on wide screens
             crossAxisSpacing: 10,
             mainAxisSpacing: 15,
-            childAspectRatio: 0.89,
+            childAspectRatio: 0.75,
           ),
           itemCount: categoryItems.length,
           itemBuilder: (context, index) {
@@ -189,7 +208,7 @@ class _CoffeeState extends State<Coffee> {
               minVanilla: item['minVanilla'] ?? 0,
               minIce: item['minIce'] ?? 0,
               deductionAmount: item['deductionAmount'] ?? 0,
-              index: index, // Pass the index to identify which item to delete},
+              index: index,
             );
           },
         ),
@@ -241,6 +260,10 @@ class CoffeeCard extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(vertical: 20),
       child: Column(
+        mainAxisAlignment:
+            MainAxisAlignment.center, // Vertically center the content
+        crossAxisAlignment:
+            CrossAxisAlignment.center, // Horizontally center the content
         children: [
           Text(
             name,
@@ -289,8 +312,7 @@ class CoffeeCard extends StatelessWidget {
 
               // Log or show a confirmation that the deduction occurred (optional)
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text("added to cart")),
+                const SnackBar(content: Text("added to cart")),
               );
             },
             style: ElevatedButton.styleFrom(

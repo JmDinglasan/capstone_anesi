@@ -30,7 +30,7 @@ void checkAndShowLowStockDialog(BuildContext context) {
 
   // Check stock for each item and show alert if it's low
   for (String item in itemsToCheck) {
-    int stock = inventory.getItemStock(item); // Get current stock level
+    int stock = inventory.getItemStock(item) as int; // Get current stock level
     bool isLowStock = stock <= 100; // Define low-stock threshold
 
     // If stock is low, show the dialog

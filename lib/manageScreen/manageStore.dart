@@ -246,6 +246,29 @@ class _EditCashOnHandPageState extends State<EditCashOnHandPage> {
 
   // Save cash on hand along with the date
   Future<void> saveChanges() async {
+    if (_cashOnHandController.text.isEmpty) {
+      // Show an error message if the field is empty
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: const Text('Please enter a value for cash on hand.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close the dialog
+                },
+                child: const Text('OK', style: TextStyle(color: kprimaryColor)),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    // Proceed to save if the field is not empty
     double cashOnHand = double.tryParse(_cashOnHandController.text) ?? 0.0;
     String date = DateTime.now()
         .toString()
@@ -280,33 +303,94 @@ class _EditCashOnHandPageState extends State<EditCashOnHandPage> {
     );
   }
 
+//EDIT CASH ON HAND
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Cash on Hand')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _cashOnHandController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Set initial cash on hand',
-                border: OutlineInputBorder(),
-              ),
+      appBar: AppBar(
+        title: const Text('Edit Cash on Hand'),
+        backgroundColor: kprimaryColor, // Modern color for AppBar
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: Container(
+        color: Colors.teal.shade50, // Light background color for contrast
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header Text
+                Text(
+                  'Set Cash on Hand',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: kprimaryColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                
+                // Input Field
+                TextField(
+                  controller: _cashOnHandController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Enter initial cash on hand',
+                    labelStyle: TextStyle(color: Colors.teal.shade700),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide(color: Colors.teal.shade700),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide(color: Colors.teal.shade400),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide(color: Colors.teal.shade700, width: 2),
+                    ),
+                  ),
+                  style: TextStyle(color: Colors.teal.shade800),
+                ),
+                
+                const SizedBox(height: 24),
+
+                // Save Button
+                SizedBox(
+                  width: double.infinity, // Full width button
+                  child: ElevatedButton(
+                    onPressed: saveChanges,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      backgroundColor: kprimaryColor, // Custom button color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'Save Changes',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: saveChanges,
-              child: const Text('Save Changes'),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
+
 
 // expense page
 class EditExpensesPage extends StatefulWidget {
@@ -321,6 +405,29 @@ class _EditExpensesPageState extends State<EditExpensesPage> {
 
   // Save total expenses for the selected date
   Future<void> saveChanges() async {
+    if (expenseController.text.isEmpty) {
+      // Show an error message if the field is empty
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: const Text('Please enter a value for total expenses.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close the dialog
+                },
+                child: const Text('OK', style: TextStyle(color: kprimaryColor)),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    // Proceed to save if the field is not empty
     double expense = double.tryParse(expenseController.text) ?? 0.0;
     String date = DateTime.now()
         .toString()
@@ -331,13 +438,13 @@ class _EditExpensesPageState extends State<EditExpensesPage> {
     // Save the total expenses value for the current date
     await prefs.setDouble('expense$date', expense);
 
-    // Show a dialog to confirm that the cash on hand has been set
+    // Show a dialog to confirm that the expenses have been set
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Set expenses made'),
-          content: const Text('Expenses has been successfully set.'),
+          content: const Text('Expenses have been successfully set.'),
           actions: [
             TextButton(
               onPressed: () {
@@ -358,27 +465,88 @@ class _EditExpensesPageState extends State<EditExpensesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Total Expenses')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: expenseController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Total Expenses',
-                border: OutlineInputBorder(),
-              ),
+      appBar: AppBar(
+        title: const Text('Edit Total Expenses'),
+        backgroundColor: kprimaryColor,
+        foregroundColor: Colors.white, // Updated color for AppBar
+        elevation: 0,
+      ),
+      body: Container(
+        color: Colors.teal.shade100, // Subtle background color
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header Text
+                const Text(
+                  'Set Total Expenses',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: kprimaryColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+
+                // Input Field
+                TextField(
+                  controller: expenseController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Total Expenses',
+                    labelStyle: TextStyle(color: kprimaryColor),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide(color: kprimaryColor),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide(color: kprimaryColor),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide:
+                          BorderSide(color: kprimaryColor, width: 2),
+                    ),
+                  ),
+                  style: TextStyle(color: kprimaryColor),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Save Button
+                SizedBox(
+                  width: double.infinity, // Full width button
+                  child: ElevatedButton(
+                    onPressed: saveChanges,
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      backgroundColor: kprimaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Save Changes',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: saveChanges,
-              child: const Text('Save Changes'),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
+

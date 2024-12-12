@@ -3,269 +3,213 @@ import 'package:capstone_anesi/inventoryScreen/inventorymodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class InventoryScreen extends StatelessWidget {
+class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
+
+  @override
+  _InventoryScreenState createState() => _InventoryScreenState();
+}
+
+class _InventoryScreenState extends State<InventoryScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("View Stocks")),
-      body: ListView(
-        padding: const EdgeInsets.all(15),
+      body: Column(
         children: [
-
-          // DRINK INGREDIENTS TITLE
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
-            child: Text(
-              'Drink Ingredients',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Search for an item...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: Colors.white38,
               ),
             ),
           ),
+          Expanded(
+            child: Consumer<InventoryModel>(
+              builder: (context, inventory, child) {
+                return StreamBuilder<List<InventoryItem>>(
+                  stream:
+                      inventory.inventoryStream, // Stream of inventory items
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-          // DRINK INGREDIENTS
-          _buildInventoryItemForG(context, 'Coffee'),
-          _buildInventoryItem(context, 'Chocolate Syrup'),
-          _buildInventoryItem(context, 'Caramel Syrup'),
-          _buildInventoryItem(context, 'Ube Syrup'),
-          _buildInventoryItem(context, 'Strawberry Syrup'),
-          _buildInventoryItem(context, 'Milk'),
-          _buildInventoryItem(context, 'White Chocolate Syrup'),
-          _buildInventoryItem(context, 'Vanilla Syrup'),
-          _buildInventoryItem(context, 'Sweetener'),
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    }
 
-          const SizedBox(height: 20),
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(
+                          child: Text('No inventory data available.'));
+                    }
 
-          // FOOD INGREDIENTS TITLE
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
-            child: Text(
-              'Food Ingredients',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+                    List<InventoryItem> inventoryItems = snapshot.data!;
+
+                    // Filter the inventory based on the search query
+                    List<InventoryItem> filteredItems = inventoryItems
+                        .where((item) =>
+                            item.name.toLowerCase().contains(_searchQuery))
+                        .toList();
+
+                    return ListView(
+                      padding: const EdgeInsets.all(15),
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                          child: Text(
+                            'All Ingredients',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                        if (filteredItems.isNotEmpty)
+                          ...filteredItems.map(
+                              (item) => _buildInventoryItem(context, item)),
+                        if (filteredItems.isEmpty)
+                          const Center(
+                              child:
+                                  Text('No items found for the search query.')),
+                      ],
+                    );
+                  },
+                );
+              },
             ),
           ),
-
-          // FOOD INGREDIENTS
-          _buildInventoryItemForG(context, 'Melted Cheese'),
-          _buildInventoryItemForG(context, 'Fries'),
-          _buildInventoryItemForPc(context, 'Cheesy Spicy Samyang Noodles'),
-          _buildInventoryItemForPc(context, 'Cheesy Spicy Samyang Carbonara'),
-          _buildInventoryItemForPc(context, 'Cheesy Samyang Noodles'),
-          _buildInventoryItemForPc(context, 'Chicken Karaage'),
-          _buildInventoryItemForPc(context, 'Spam'),
-          _buildInventoryItemForPc(context, 'Egg'),
         ],
       ),
     );
   }
 
-Widget _buildInventoryItem(BuildContext context, String itemName) {
-  return Consumer<InventoryModel>(
-    builder: (context, inventory, child) {
-      int stock = inventory.getItemStock(itemName); // Get current stock level
-      bool isLowStock = stock <= 100; // Define low-stock threshold
+  // Builds the individual inventory item widget
+  Widget _buildInventoryItem(BuildContext context, InventoryItem item) {
+    return Consumer<InventoryModel>(
+      builder: (context, inventory, child) {
+        int stock =
+            item.stock; // Get current stock level from the InventoryItem
+        bool isLowStock = stock <= 50; // Define low-stock threshold
 
-      // Check if stock is low and show the dialog
-      if (isLowStock) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _showLowStockDialog(context, itemName, stock);
-        });
-      }
+        // Check if stock is low and show the dialog
+        if (isLowStock) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _showLowStockDialog(context, item.name, stock);
+          });
+        }
 
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
+        return Container(
+          margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3),
+                spreadRadius: 2,
+                blurRadius: 5,
+                offset: const Offset(0, 3),
+              ),
+            ],
+            border: Border.all(
+              color: Colors.grey.shade300,
             ),
-          ],
-          border: Border.all(
-            color: Colors.grey.shade300,
           ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  itemName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "$stock ml",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
+                  const SizedBox(height: 4),
+                  Text(
+                    "$stock g/ml/pc",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            IconButton(
-              icon: const Icon(Icons.edit, color: kprimaryColor),
-              onPressed: () => _showInputDialog(context, inventory, itemName),
-            ),
-          ],
-        ),
+                ],
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: kprimaryColor),
+                    onPressed: () =>
+                        _showInputDialog(context, inventory, item.name),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.redAccent),
+                    onPressed: () =>
+                        _showDeleteConfirmationDialog(context, inventory, item),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// Show the confirmation dialog before deleting an item
+void _showDeleteConfirmationDialog(
+    BuildContext context, InventoryModel inventory, InventoryItem item) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Confirm Deletion'),
+        content: Text(
+            'Are you sure you want to delete "${item.name}" from the inventory?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await inventory.deleteItem(item.name); // Call the delete function
+              Navigator.of(context).pop();
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       );
     },
   );
 }
-
-Widget _buildInventoryItemForPc(BuildContext context, String itemName) {
-  return Consumer<InventoryModel>(
-    builder: (context, inventory, child) {
-      int stock = inventory.getItemStock(itemName); // Get current stock level
-      bool isLowStock = stock <= 50; // Define low-stock threshold
-
-      // Check if stock is low and show the dialog
-      if (isLowStock) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _showLowStockDialogForPC(context, itemName, stock);
-        });
-      }
-
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
-          border: Border.all(
-            color: Colors.grey.shade300,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  itemName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "$stock pcs",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-            IconButton(
-              icon: const Icon(Icons.edit, color: kprimaryColor),
-              onPressed: () => _showInputDialog(context, inventory, itemName),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
-
-
-Widget _buildInventoryItemForG(BuildContext context, String itemName) {
-  return Consumer<InventoryModel>(
-    builder: (context, inventory, child) {
-      int stock = inventory.getItemStock(itemName); // Get current stock level
-      bool isLowStock = stock <= 100; // Define low-stock threshold
-
-      // Check if stock is low and show the dialog
-      if (isLowStock) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _showLowStockDialogForG(context, itemName, stock);
-        });
-      }
-
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 15),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
-          border: Border.all(
-            color: Colors.grey.shade300,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  itemName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "$stock grams",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-            IconButton(
-              icon: const Icon(Icons.edit, color: kprimaryColor),
-              onPressed: () => _showInputDialog(context, inventory, itemName),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
-
 
 // Function to show low-stock dialog FOR ML
 void _showLowStockDialog(BuildContext context, String itemName, int stock) {
@@ -278,13 +222,10 @@ void _showLowStockDialog(BuildContext context, String itemName, int stock) {
         ),
         title: const Text(
           "Low Stock Warning",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.red,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
         ),
         content: Text(
-          "The stock for $itemName is low.\nCurrent stock: $stock ml.\nPlease consider restocking soon.",
+          "The stock for $itemName is low.\nCurrent stock: $stock g/ml/pc.\nPlease consider restocking soon.",
           style: const TextStyle(
             fontSize: 16,
             color: Colors.black87,
@@ -309,92 +250,9 @@ void _showLowStockDialog(BuildContext context, String itemName, int stock) {
   );
 }
 
-// Function to show low-stock dialog FOR GRAMS
-void _showLowStockDialogForG(BuildContext context, String itemName, int stock) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-        title: const Text(
-          "Low Stock Warning",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.red,
-          ),
-        ),
-        content: Text(
-          "The stock for $itemName is low.\nCurrent stock: $stock grams.\nPlease consider restocking soon.",
-          style: const TextStyle(
-            fontSize: 16,
-            color: Colors.black87,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text(
-              "OK",
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-// Function to show low-stock dialog for PC
-void _showLowStockDialogForPC(BuildContext context, String itemName, int stock) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-        title: const Text(
-          "Low Stock Warning",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.red,
-          ),
-        ),
-        content: Text(
-          "The stock for $itemName is low.\nCurrent stock: $stock pcs.\nPlease consider restocking soon.",
-          style: const TextStyle(
-            fontSize: 16,
-            color: Colors.black87,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text(
-              "OK",
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      );
-    },
-  );
-}
-  
-
-void _showInputDialog(BuildContext context, InventoryModel inventory, String itemName) {
+// Function to show the dialog for updating item stock
+void _showInputDialog(
+    BuildContext context, InventoryModel inventory, String itemName) {
   final TextEditingController controller = TextEditingController();
 
   showDialog(
@@ -422,7 +280,8 @@ void _showInputDialog(BuildContext context, InventoryModel inventory, String ite
                 hintText: "Enter Initial Amount",
                 filled: true,
                 fillColor: Colors.grey.shade100,
-                contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide.none,
@@ -451,6 +310,9 @@ void _showInputDialog(BuildContext context, InventoryModel inventory, String ite
                 await inventory.setItemStock(itemName, amount);
               }
               Navigator.of(context).pop();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("initial amount successfully set")),
+              );
             },
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,
@@ -465,6 +327,4 @@ void _showInputDialog(BuildContext context, InventoryModel inventory, String ite
       );
     },
   );
-}
-
 }

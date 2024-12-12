@@ -11,7 +11,7 @@ class Carts extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: const Text(
+        title: const Text(
           "Your Cart",
           style: TextStyle(
             fontWeight: FontWeight.bold,  // Set the font to bold
@@ -41,7 +41,7 @@ class Carts extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              decoration:const BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: kprimaryColor,
                                 borderRadius: BorderRadius.vertical(
                                     top: Radius.circular(10),
@@ -52,12 +52,15 @@ class Carts extends StatelessWidget {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    item['name'],
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Color.fromRGBO(255, 255, 255, 1),
-                                      fontWeight: FontWeight.bold,
+                                  Flexible(
+                                    child: Text(
+                                      item['name'],
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis, // Truncate long names
                                     ),
                                   ),
                                   Row(
@@ -91,7 +94,7 @@ class Carts extends StatelessWidget {
                       );
                     }),
 
-                    //order summary section
+                    // Order summary section
                     const SizedBox(height: 16),
                     const Divider(),
                     const Text(
@@ -101,7 +104,6 @@ class Carts extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-
                     const SizedBox(height: 8),
 
                     ...cartModel.items.map((item) {
@@ -119,6 +121,8 @@ class Carts extends StatelessWidget {
                       );
                     }),
                     const SizedBox(height: 16),
+
+                    // Total section
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -138,18 +142,22 @@ class Carts extends StatelessWidget {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Handle proceed to payment
-                        Navigator.pushNamed(context, '/list');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        textStyle: const TextStyle(fontSize: 18),
+
+                    // Proceed to payment button with responsive padding
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.9, // Make button width responsive
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // Handle proceed to payment
+                          Navigator.pushNamed(context, '/list');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          textStyle: const TextStyle(fontSize: 18),
+                        ),
+                        child: const Text('Proceed to Payment'),
                       ),
-                      child: const Text('Proceed to Payment'),
                     ),
                   ],
                 );
@@ -157,6 +165,4 @@ class Carts extends StatelessWidget {
       ),
     );
   }
-
-  }
-
+}

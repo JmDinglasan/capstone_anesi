@@ -29,8 +29,7 @@ Future<void> main() async {
           create: (context) => OrderModel(),
         ),
         ChangeNotifierProvider(create: (_) => TransactionModel()),
-        ChangeNotifierProvider(
-            create: (_) => InventoryModel(inventorystock: 0)),
+        ChangeNotifierProvider(create: (_) => InventoryModel()),
       ],
       child: MyApp(),
     ),
@@ -64,4 +63,3 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-

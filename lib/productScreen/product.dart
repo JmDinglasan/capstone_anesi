@@ -30,7 +30,7 @@ void checkAndShowLowStockDialog(BuildContext context) {
   ];
 
   for (String item in itemsToCheck) {
-    int stock = inventory.getItemStock(item); // Get current stock level
+    int stock = inventory.getItemStock(item) as int; // Get current stock level
     bool isLowStock = stock <= 50; // Define low-stock threshold
 
     if (isLowStock) {
@@ -54,14 +54,14 @@ void _showLowStockDialog2(BuildContext context, String itemName, int stock) {
           children: [
             Icon(
               Icons.warning_amber_rounded,
-              color: kprimaryColor,
+              color: Colors.redAccent,
               size: 28,
             ),
             SizedBox(width: 10),
             Text(
               'Low Stock Alert',
               style: TextStyle(
-                color: Colors.black,
+                color: Colors.redAccent,
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
               ),
@@ -83,9 +83,9 @@ void _showLowStockDialog2(BuildContext context, String itemName, int stock) {
               ),
               SizedBox(height: 8),
               Text(
-                'Current stock: $stock (g/ml/pcs)',
+                'Current stock: $stock (g/ml/pc)',
                 style: TextStyle(
-                  color: Colors.red,
+                  color: Colors.black,
                   fontSize: 14,
                 ),
                 textAlign: TextAlign.center,
@@ -117,14 +117,11 @@ void _showLowStockDialog2(BuildContext context, String itemName, int stock) {
   );
 }
 
-
 class Product extends StatelessWidget {
-  // Remove the `const` keyword from the constructor here.
   Product({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Call the checkAndShowLowStockDialog function when the Product screen is loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
       checkAndShowLowStockDialog(context);
     });
@@ -141,39 +138,65 @@ class Product extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 5),
-              // Categories
-              Text(
-                'Categories',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 16),
-              // Categories Column with padding on each card
-              Column(
-                 children: [
-                  Center(
-                    child: CategoryCard('DRINKS', 'assets/drinks.png', Coffee()),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Determine if the layout should be single-column or grid based on width
+            final isWideScreen = constraints.maxWidth > 600;
+
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 5),
+                  // Categories Header
+                  const Text(
+                    'Categories',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  Center(
-                    child: CategoryCard('NOODLES', 'assets/noodles.png', Noodles()),
-                  ),
-                  Center(
-                    child: CategoryCard('MEALS / SNACKS', 'assets/snacks.png', Snacks()),
-                  ),
+                  const SizedBox(height: 16),
+                  // Responsive Categories
+                  isWideScreen
+                      ? GridView.builder(
+                          shrinkWrap: true,
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3, // Two cards per row for wide screens
+                            mainAxisSpacing: 16,
+                            crossAxisSpacing: 16,
+                            childAspectRatio: 3 / 2, // Adjust card aspect ratio
+                          ),
+                          itemCount: 3,
+                          itemBuilder: (context, index) {
+                            return [
+                              CategoryCard('DRINKS', 'assets/drinks.png', Coffee()),
+                              CategoryCard('NOODLES', 'assets/noodles.png', Noodles()),
+                              CategoryCard('MEALS / SNACKS', 'assets/snacks.png', Snacks()),
+                            ][index];
+                          },
+                        )
+                      : Column(
+                          children: [
+                            Center(
+                              child: CategoryCard('DRINKS', 'assets/drinks.png', Coffee()),
+                            ),
+                            Center(
+                              child: CategoryCard('NOODLES', 'assets/noodles.png', Noodles()),
+                            ),
+                            Center(
+                              child: CategoryCard('MEALS / SNACKS', 'assets/snacks.png', Snacks()),
+                            ),
+                          ],
+                        ),
+                  const SizedBox(height: 16), // Added some space at the end
                 ],
               ),
-              SizedBox(height: 16), // Added some space at the end
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
   }
 }
+
 
 class CategoryCard extends StatelessWidget {
   final String title;

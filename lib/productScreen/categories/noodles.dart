@@ -82,71 +82,79 @@ class _NoodlesState extends State<Noodles> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search Menu...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Determine whether to use grid or list based on screen width
+            final isWideScreen = constraints.maxWidth > 600;
+            final isSmallScreen = constraints.maxWidth <= 600;
+
+            return Column(
+              children: [
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search Menu...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView(
-                children: [
-                  _buildSection('NOODLES'),
-                  const SizedBox(height: 35),
-                  // _buildSection('SHARING'),
-                  // const SizedBox(height: 35),
-                  _buildSection('ADD-ONS'),
-                ],
-              ),
-            ),
-            Consumer<CartModel>(
-              builder: (context, cartModel, child) {
-                return cartModel.items.isNotEmpty
-                    ? Container(
-                        padding: const EdgeInsets.all(16),
-                        color: Colors.grey[200],
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView(
+                    children: [
+                      _buildSection('NOODLES', isWideScreen, isSmallScreen),
+                      const SizedBox(height: 35),
+                      _buildSection('PASTA', isWideScreen, isSmallScreen),
+                      const SizedBox(height: 35),
+                      _buildSection('ADD-ONS', isWideScreen, isSmallScreen),
+                    ],
+                  ),
+                ),
+                Consumer<CartModel>(
+                  builder: (context, cartModel, child) {
+                    return cartModel.items.isNotEmpty
+                        ? Container(
+                            padding: const EdgeInsets.all(16),
+                            color: Colors.grey[200],
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Icon(Icons.shopping_cart),
-                                const SizedBox(width: 8),
-                                Text('${cartModel.items.length} Items'),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.shopping_cart),
+                                    const SizedBox(width: 8),
+                                    Text('${cartModel.items.length} Items'),
+                                  ],
+                                ),
+                                Text(
+                                    'Total: ${cartModel.totalPrice.toStringAsFixed(2)}'),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => const Carts(),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text('Go to Cart'),
+                                ),
                               ],
                             ),
-                            Text(
-                                'Total: ${cartModel.totalPrice.toStringAsFixed(2)}'),
-                            ElevatedButton(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => const Carts(),
-                                  ),
-                                );
-                              },
-                              child: const Text('Go to Cart'),
-                            ),
-                          ],
-                        ),
-                      )
-                    : const SizedBox.shrink();
-              },
-            ),
-          ],
+                          )
+                        : const SizedBox.shrink();
+                  },
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildSection(String category) {
+  Widget _buildSection(String category, bool isWideScreen, bool isSmallScreen) {
     final categoryItems =
         filteredItems.where((item) => item['category'] == category).toList();
 
@@ -160,14 +168,19 @@ class _NoodlesState extends State<Noodles> {
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
+        // Adjust the grid based on screen size
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: isSmallScreen
+                ? 2
+                : (isWideScreen
+                    ? 5
+                    : 2), // 2 items on mobile, 4 on wide screens
             crossAxisSpacing: 10,
             mainAxisSpacing: 15,
-            childAspectRatio: 0.89,
+            childAspectRatio: 0.75,
           ),
           itemCount: categoryItems.length,
           itemBuilder: (context, index) {
@@ -226,6 +239,10 @@ class CoffeeCard extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(8),
       child: Column(
+        mainAxisAlignment:
+            MainAxisAlignment.center, // Vertically center the content
+        crossAxisAlignment:
+            CrossAxisAlignment.center, // Horizontally center the content
         children: [
           Text(
             name,
@@ -258,7 +275,7 @@ class CoffeeCard extends StatelessWidget {
                   .deductItem('Spam', minSpam);
               Provider.of<InventoryModel>(context, listen: false)
                   .deductItem('Chicken Karaage', minKaraage);
-                  
+
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text("added to cart")),
               );

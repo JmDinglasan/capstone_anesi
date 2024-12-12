@@ -101,8 +101,14 @@ class _HistoryTransactionScreenState extends State<HistoryTransactionScreen> {
             0.0,
             (sum, transaction) => sum + transaction.totalAmount,
           );
-          // Calculate cash on hand including total sales
-          final double totalCashOnHand = cashOnHand + totalSales;
+
+// Calculate cash on hand including total sales and deducting expense
+          final double totalCashOnHand =
+              (cashOnHand + totalSales) - (expense > 0 ? expense : 0);
+
+// Deduct expense from total sales
+          final double adjustedTotalSales =
+              totalSales - (expense > 0 ? expense : 0);
 
           return ListView(
             padding: const EdgeInsets.all(16.0),
@@ -144,7 +150,7 @@ class _HistoryTransactionScreenState extends State<HistoryTransactionScreen> {
                       ),
                     ],
                   ),
-                  if (totalSales > 0)
+                  if (adjustedTotalSales > 0)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
@@ -157,7 +163,7 @@ class _HistoryTransactionScreenState extends State<HistoryTransactionScreen> {
                           ),
                         ),
                         Text(
-                          '₱${totalSales.toStringAsFixed(2)}',
+                          '₱${adjustedTotalSales.toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

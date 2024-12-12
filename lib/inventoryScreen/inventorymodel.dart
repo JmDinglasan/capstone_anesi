@@ -1,13 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+class InventoryItem {
+  final String name;
+  final int stock;
+
+  // Constructor
+  InventoryItem({required this.name, required this.stock});
+
+  // Factory constructor to create an InventoryItem from a Firestore document
+  factory InventoryItem.fromFirestore(DocumentSnapshot doc) {
+    return InventoryItem(
+      name: doc.id, // The document ID represents the item name
+      stock: doc['stock'] ?? 0, // Access the 'stock' field from the Firestore document
+    );
+  }
+}
+
 class InventoryModel with ChangeNotifier {
   final CollectionReference _inventoryRef =
       FirebaseFirestore.instance.collection('inventory');
 
   Map<String, int> _inventory = {};
 
-  InventoryModel({required int inventorystock}) {
+  InventoryModel() {
     _loadInventory(); // Load inventory data when initialized
   }
 
@@ -15,6 +31,17 @@ class InventoryModel with ChangeNotifier {
 
   // Public getter for inventory
   Map<String, int> get inventory => _inventory;
+
+    // Stream to fetch the inventory items
+  Stream<List<InventoryItem>> get inventoryStream {
+    return _inventoryRef.snapshots().map((snapshot) {
+      List<InventoryItem> items = [];
+      for (var doc in snapshot.docs) {
+        items.add(InventoryItem.fromFirestore(doc)); // Convert Firestore document to InventoryItem
+      }
+      return items;
+    });
+  }
 
   Future<void> _loadInventory() async {
     // Fetch data from Firestore
@@ -92,7 +119,7 @@ class InventoryModel with ChangeNotifier {
     // Check if the item exists in the local inventory map
     if (_inventory.containsKey(itemName)) {
       // Remove from the local inventory map
-      _inventory.remove(itemName);
+      _inventory.remove(itemName); 
       notifyListeners(); // Notify listeners to update the UI
 
       // Delete the item from Firestore

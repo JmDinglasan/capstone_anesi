@@ -63,193 +63,169 @@ class AppDrawer extends StatelessWidget {
     return null;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Drawer(
-      child: Container(
-        color: kprimaryColor, // Set the background color for the whole drawer
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: <Widget>[
-                  FutureBuilder<String?>(
-                    future: getFirstName(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const DrawerHeader(
-                          decoration: BoxDecoration(
-                            color: kprimaryColor, // DrawerHeader color
+@override
+Widget build(BuildContext context) {
+  // Check screen width for responsiveness
+  bool isWideScreen = MediaQuery.of(context).size.width > 600;
+
+  return Drawer(
+    child: Container(
+      color: kprimaryColor, // Set the background color for the whole drawer
+      child: Column(
+        children: <Widget>[
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: <Widget>[
+                FutureBuilder<String?>(
+                  future: getFirstName(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const DrawerHeader(
+                        decoration: BoxDecoration(
+                          color: kprimaryColor, // DrawerHeader color
+                        ),
+                        child: Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        ),
+                      );
+                    } else if (snapshot.hasError || !snapshot.hasData) {
+                      return const DrawerHeader(
+                        decoration: BoxDecoration(
+                          color: kprimaryColor, // DrawerHeader color
+                        ),
+                        child: Text(
+                          'Welcome!',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
                           ),
-                          child: Center(
-                            child:
-                                CircularProgressIndicator(color: Colors.white),
-                          ),
-                        );
-                      } else if (snapshot.hasError || !snapshot.hasData) {
-                        return const DrawerHeader(
-                          decoration: BoxDecoration(
-                            color: kprimaryColor, // DrawerHeader color
-                          ),
-                          child: Text(
-                            'Welcome!',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
+                        ),
+                      );
+                    } else {
+                      return DrawerHeader(
+                        decoration: const BoxDecoration(
+                          color: kprimaryColor, // DrawerHeader color
+                        ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: isWideScreen ? 32 : 24, // Adjust radius for responsiveness
+                              backgroundColor: Colors.white,
+                              child: Icon(
+                                Icons.account_circle,
+                                color: kprimaryColor,
+                                size: isWideScreen ? 50 : 40, // Adjust icon size
+                              ),
                             ),
-                          ),
-                        );
-                      } else {
-                        return DrawerHeader(
-                          decoration: const BoxDecoration(
-                            color: kprimaryColor, // DrawerHeader color
-                          ),
-                          child: Row(
-                            children: [
-                              const CircleAvatar(
-                                radius: 24, // Adjust the radius as needed
-                                backgroundColor: Colors.white,
-                                child: Icon(
-                                  Icons.account_circle,
-                                  color: kprimaryColor,
-                                  size: 40, // Adjust the icon size as needed
+                            const SizedBox(
+                                width:
+                                    12), // Add space between the avatar and text
+                            Expanded(
+                              child: Text(
+                                'Welcome, ${snapshot.data}!',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: isWideScreen ? 28 : 24, // Responsive font size
                                 ),
                               ),
-                              const SizedBox(
-                                  width:
-                                      12), // Add space between the avatar and text
-                              Expanded(
-                                child: Text(
-                                  'Welcome, ${snapshot.data}!',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 24,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.manage_accounts_rounded,
-                        color: Colors.white),
-                    title: const Text(
-                      'Manage Accounts',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    tileColor: kprimaryColor, // ListTile background color
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SuperAdminAccountsPage()),
+                            ),
+                          ],
+                        ),
                       );
-                    },
-                  ),
-                  ListTile(
-                    leading:
-                        const Icon(Icons.point_of_sale, color: Colors.white),
-                    title: const Text(
-                      'Cashier',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    tileColor: kprimaryColor, // ListTile background color
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const MainScreen()),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.history, color: Colors.white),
-                    title: const Text(
-                      'History Transaction',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    tileColor: kprimaryColor, // ListTile background color
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const HistoryTransactionScreen()),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.assessment_outlined,
-                        color: Colors.white),
-                    title: const Text(
-                      'Report',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    tileColor: kprimaryColor, // ListTile background color
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const ReportScreen()),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.store, color: Colors.white),
-                    title: const Text(
-                      'Manage Store',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    tileColor: kprimaryColor, // ListTile background color
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const ManageStorePage()),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.inventory_outlined,
-                        color: Colors.white),
-                    title: const Text(
-                      'View Stocks',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    tileColor: kprimaryColor, // ListTile background color
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const InventoryScreen()),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(
-                  20.0), // Adds space around the logout button
-              child: ListTile(
-                leading: const Icon(Icons.logout, color: Colors.white),
-                title: const Text(
-                  'Logout',
-                  style: TextStyle(color: Colors.white),
+                    }
+                  },
                 ),
-                tileColor: kprimaryColor, // ListTile background color
-                onTap: () {
-                  showLogoutConfirmation(context);
-                },
-              ),
+                // ListTiles
+                buildListTile(
+                  context,
+                  Icons.manage_accounts_rounded,
+                  'Manage Accounts',
+                  const SuperAdminAccountsPage(),
+                ),
+                buildListTile(
+                  context,
+                  Icons.point_of_sale,
+                  'Cashier',
+                  const MainScreen(),
+                ),
+                buildListTile(
+                  context,
+                  Icons.history,
+                  'History Transaction',
+                  const HistoryTransactionScreen(),
+                ),
+                buildListTile(
+                  context,
+                  Icons.assessment_outlined,
+                  'Report',
+                  const ReportScreen(),
+                ),
+                buildListTile(
+                  context,
+                  Icons.store,
+                  'Manage Store',
+                  const ManageStorePage(),
+                ),
+                buildListTile(
+                  context,
+                  Icons.inventory_outlined,
+                  'View Stocks',
+                  const InventoryScreen(),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(
+                20.0), // Adds space around the logout button
+            child: ListTile(
+              leading: const Icon(Icons.logout, color: Colors.white),
+              title: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.white),
+              ),
+              tileColor: kprimaryColor, // ListTile background color
+              onTap: () {
+                showLogoutConfirmation(context);
+              },
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
+// Helper method to build ListTile with consistent styling
+Widget buildListTile(
+    BuildContext context, IconData icon, String title, Widget destination) {
+  bool isWideScreen = MediaQuery.of(context).size.width > 600;
+
+  return ListTile(
+    leading: Icon(
+      icon,
+      color: Colors.white,
+      size: isWideScreen ? 30 : 24, // Responsive icon size
+    ),
+    title: Text(
+      title,
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: isWideScreen ? 18 : 14, // Responsive font size
+      ),
+    ),
+    tileColor: kprimaryColor, // ListTile background color
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => destination),
+      );
+    },
+    contentPadding: EdgeInsets.symmetric(
+      horizontal: isWideScreen ? 24 : 16, // Responsive padding
+      vertical: isWideScreen ? 12 : 8,
+    ),
+  );
+}
 }

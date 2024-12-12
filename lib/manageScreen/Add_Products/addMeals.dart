@@ -1,6 +1,7 @@
 // ADD PRODUCT SCREEN
 import 'package:capstone_anesi/app.dart';
 import 'package:capstone_anesi/constant.dart';
+import 'package:capstone_anesi/inventoryScreen/inventorymodel.dart';
 import 'package:flutter/material.dart';
 
 class AddProductFormMeals extends StatefulWidget {
@@ -26,6 +27,90 @@ class _AddProductFormState extends State<AddProductFormMeals> {
   final _minFriesController = TextEditingController();
   final _minEggController = TextEditingController();
   final _minSpamController = TextEditingController();
+  final List<Map<String, dynamic>> _ingredients = [];
+
+  void _addIngredient(String name, int initialStock) {
+    setState(() {
+      _ingredients.add({'name': name, 'stock': initialStock});
+    });
+  }
+
+  void _deductStock(String ingredientName, int deductionAmount) {
+  setState(() {
+    for (var ingredient in _ingredients) {
+      if (ingredient['name'] == ingredientName) {
+        int currentStock = ingredient['stock'];
+        int newStock = currentStock - deductionAmount;
+        ingredient['stock'] = newStock < 0 ? 0 : newStock; // Ensure stock doesn't go negative
+      }
+    }
+  });
+}
+
+  Future<void> _saveProduct() async {
+    if (_nameController.text.isEmpty ||
+        _priceController.text.isEmpty ||
+        _categoryController.text.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Incomplete Form'),
+            content: const Text('Please fill in all the required fields.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    final category = _categoryController.text.toUpperCase();
+    final newProduct = {
+      'name': _nameController.text,
+      'price': double.tryParse(_priceController.text) ?? 0.0,
+      'category': category,
+      'minMeltedCheese': int.tryParse(_minMeltedCheeseController.text) ?? 0,
+      'minEgg': int.tryParse(_minEggController.text) ?? 0,
+      'minSpam': int.tryParse(_minSpamController.text) ?? 0,
+      'minKaraage': int.tryParse(_minKaraageController.text) ?? 0,
+      'ingredients': _ingredients,
+    };
+    widget.updateItems(newProduct);
+
+    // Save ingredients to inventory
+    final inventoryModel = InventoryModel();
+    for (var ingredient in _ingredients) {
+      await inventoryModel.addItem(ingredient['name'], ingredient['stock']);
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Success'),
+          content: const Text('A new product has been created successfully.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MainScreen()),
+                );
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -129,6 +214,112 @@ class _AddProductFormState extends State<AddProductFormMeals> {
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 24.0),
+              const Text(
+                'Add New Ingredients:',
+                style: TextStyle(
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                  color: kprimaryColor,
+                ),
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: _ingredients.length,
+                itemBuilder: (context, index) {
+                  final ingredient = _ingredients[index];
+                  return ListTile(
+                    title: Text(ingredient['name']),
+                    subtitle: Text('Initial Stock: ${ingredient['stock']}'),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        setState(() {
+                          _ingredients.removeAt(index);
+                        });
+                      },
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      final nameController = TextEditingController();
+                      final stockController = TextEditingController();
+                      final deductionController =
+                          TextEditingController(); // Add this controller
+
+                      return AlertDialog(
+                        title: const Text('Add Ingredient'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextField(
+                              controller: nameController,
+                              decoration: const InputDecoration(
+                                labelText: 'Ingredient Name',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                            const SizedBox(height: 16.0),
+                            TextField(
+                              controller: stockController,
+                              decoration: const InputDecoration(
+                                labelText: 'Initial Stock',
+                                border: OutlineInputBorder(),
+                              ),
+                              keyboardType: TextInputType.number,
+                            ),
+                            const SizedBox(height: 16.0),
+                            TextField(
+                              controller: deductionController,
+                              decoration: const InputDecoration(
+                                labelText: 'Deduction Amount',
+                                border: OutlineInputBorder(),
+                              ),
+                              keyboardType: TextInputType.number,
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              final name = nameController.text;
+                              final stock =
+                                  int.tryParse(stockController.text) ?? 0;
+                              // final deductionAmount =
+                              //     int.tryParse(deductionController.text) ?? 0;
+
+                              if (name.isNotEmpty && stock > 0) {
+                                _addIngredient(name, stock);
+
+                                // if (deductionAmount > 0) {
+                                //   _deductStock(name,
+                                //       deductionAmount); // Apply the deduction
+                                // }
+                              }
+
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Add'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+                child: const Text('Add Ingredient'),
+              ),
+              const SizedBox(height: 24.0),
               Center(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -142,68 +333,7 @@ class _AddProductFormState extends State<AddProductFormMeals> {
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                   ),
-                  onPressed: () {
-                    if (_nameController.text.isEmpty ||
-                        _priceController.text.isEmpty ||
-                        _categoryController.text.isEmpty) {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Incomplete Form'),
-                            content: const Text(
-                                'Please fill in all the required fields.'),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text('OK'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    } else {
-                      final category = _categoryController.text.toUpperCase();
-                      final newProduct = {
-                        'name': _nameController.text,
-                        'price': double.tryParse(_priceController.text) ?? 0.0,
-                        'category': category,
-                        'minMeltedCheese':
-                            int.tryParse(_minMeltedCheeseController.text) ?? 0,
-                        'minEgg': int.tryParse(_minEggController.text) ?? 0,
-                        'minSpam': int.tryParse(_minSpamController.text) ?? 0,
-                        'minKaraage':
-                            int.tryParse(_minKaraageController.text) ?? 0,
-                      };
-                      widget.updateItems(newProduct);
-
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Success'),
-                            content: const Text(
-                                'A new product has been created successfully.'),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const MainScreen()),
-                                  );
-                                },
-                                child: const Text('OK'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    }
-                  },
+                  onPressed: _saveProduct,
                   child: const Text(
                     'Add Product',
                     style: TextStyle(fontSize: 16.0),

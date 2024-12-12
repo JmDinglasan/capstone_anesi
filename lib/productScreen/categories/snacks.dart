@@ -37,6 +37,26 @@ class _SnacksState extends State<Snacks> {
   ];
 
   List<Map<String, dynamic>> filteredItems = [];
+  final List<Map<String, dynamic>> _ingredients = [];
+
+  void _addIngredient(String name, int initialStock) {
+    setState(() {
+      _ingredients.add({'name': name, 'stock': initialStock});
+    });
+  }
+
+  void _deductStock(String ingredientName, int deductionAmount) {
+    setState(() {
+      for (var ingredient in _ingredients) {
+        if (ingredient['name'] == ingredientName) {
+          int currentStock = ingredient['stock'];
+          int newStock = currentStock - deductionAmount;
+          ingredient['stock'] =
+              newStock < 0 ? 0 : newStock; // Ensure stock doesn't go negative
+        }
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -75,126 +95,127 @@ class _SnacksState extends State<Snacks> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Meals/Snacks'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('Meals/Snacks'),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () {
+          Navigator.of(context).pop();
+        },
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search Menu...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
+    ),
+    body: Padding(
+      padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.05), // Adjust padding for responsiveness
+      child: Column(
+        children: [
+          TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Search Menu...',
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView(
-                children: [
-                  _buildSection('MEALS'),
-                  const SizedBox(height: 35),
-                  _buildSection('SNACKS'),
-                  const SizedBox(height: 35),
-                  _buildSection('ADD-ONS'),
-                ],
-              ),
-            ),
-            Consumer<CartModel>(
-              builder: (context, cartModel, child) {
-                return cartModel.items.isNotEmpty
-                    ? Container(
-                        padding: const EdgeInsets.all(16),
-                        color: Colors.grey[200],
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.shopping_cart),
-                                const SizedBox(width: 8),
-                                Text('${cartModel.items.length} Items'),
-                              ],
-                            ),
-                            Text(
-                                'Total: ${cartModel.totalPrice.toStringAsFixed(2)}'),
-                            ElevatedButton(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => const Carts(),
-                                  ),
-                                );
-                              },
-                              child: const Text('Go to Cart'),
-                            ),
-                          ],
-                        ),
-                      )
-                    : const SizedBox.shrink();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSection(String category) {
-    final categoryItems =
-        filteredItems.where((item) => item['category'] == category).toList();
-
-    if (categoryItems.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          category,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 0.89,
           ),
-          itemCount: categoryItems.length,
-          itemBuilder: (context, index) {
-            final item = categoryItems[index];
-            return CoffeeCard(
-              name: item['name'],
-              price: item['price'],
-              minCheese: item['minCheese'] ?? 0,
-              minEgg: item['minEgg'] ?? 0,
-              minSpam: item['minSpam'] ?? 0,
-              minKaraage: item['minKaraage'] ?? 0,
-              minNori: item['minNori'] ?? 0,
-              minFries: item['minFries'] ?? 0,
-              index: index, // Pass the index to identify which item to delete
-            );
-          },
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView(
+              children: [
+                _buildSection('MEALS'),
+                const SizedBox(height: 35),
+                _buildSection('SNACKS'),
+                const SizedBox(height: 35),
+                _buildSection('ADD-ONS'),
+              ],
+            ),
+          ),
+          Consumer<CartModel>(
+            builder: (context, cartModel, child) {
+              return cartModel.items.isNotEmpty
+                  ? Container(
+                      padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
+                      color: Colors.grey[200],
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.shopping_cart),
+                              const SizedBox(width: 8),
+                              Text('${cartModel.items.length} Items'),
+                            ],
+                          ),
+                          Text('Total: ${cartModel.totalPrice.toStringAsFixed(2)}'),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const Carts(),
+                                ),
+                              );
+                            },
+                            child: const Text('Go to Cart'),
+                          ),
+                        ],
+                      ),
+                    )
+                  : const SizedBox.shrink();
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _buildSection(String category) {
+  final categoryItems =
+      filteredItems.where((item) => item['category'] == category).toList();
+
+  if (categoryItems.isEmpty) return const SizedBox.shrink();
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        category,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 8),
+      // Responsive GridView
+      GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: MediaQuery.of(context).size.width > 600 ? 5 : 2, // 3 items per row on large screens, 2 on small
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 15,
+          childAspectRatio: 0.75,
         ),
-      ],
-    );
-  }
+        itemCount: categoryItems.length,
+        itemBuilder: (context, index) {
+          final item = categoryItems[index];
+          return CoffeeCard(
+            name: item['name'],
+            price: item['price'],
+            minCheese: item['minCheese'] ?? 0,
+            minEgg: item['minEgg'] ?? 0,
+            minSpam: item['minSpam'] ?? 0,
+            minKaraage: item['minKaraage'] ?? 0,
+            minNori: item['minNori'] ?? 0,
+            minFries: item['minFries'] ?? 0,
+            index: index, // Pass the index to identify which item to delete
+          );
+        },
+      ),
+    ],
+  );
+}
+
 }
 
 class CoffeeCard extends StatelessWidget {
@@ -221,62 +242,71 @@ class CoffeeCard extends StatelessWidget {
     required this.index, // Receive the indexk
   });
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: kprimaryColor,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        children: [
-          Text(
-            name,
-            style: const TextStyle(color: Colors.white, fontSize: 15),
-            textAlign: TextAlign.center,
+ @override
+Widget build(BuildContext context) {
+  return Container(
+    decoration: BoxDecoration(
+      color: kprimaryColor,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    padding: const EdgeInsets.all(8),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,  // Vertically center the content
+      crossAxisAlignment: CrossAxisAlignment.center,  // Horizontally center the content
+      children: [
+        Text(
+          name,
+          style: const TextStyle(color: Colors.white, fontSize: 15),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 15),
+        Text(
+          price.toStringAsFixed(2),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(height: 15),
-          Text(
-            price.toStringAsFixed(2),
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 25),
-          ElevatedButton(
-            onPressed: () {
-              Provider.of<CartModel>(context, listen: false)
-                  .addToCart(name, price);
+        ),
+        const SizedBox(height: 25),
+        ElevatedButton(
+          onPressed: () {
+            // Existing functionality: Add item to cart
+            Provider.of<CartModel>(context, listen: false)
+                .addToCart(name, price);
 
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Cheese', minCheese);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Egg', minEgg);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Spam', minSpam);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Chicken Karaage', minKaraage);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Nori', minNori);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Fries', minFries);
+            // Deduct the inventory items
+            Provider.of<InventoryModel>(context, listen: false)
+                .deductItem('Cheese', minCheese);
+            Provider.of<InventoryModel>(context, listen: false)
+                .deductItem('Egg', minEgg);
+            Provider.of<InventoryModel>(context, listen: false)
+                .deductItem('Spam', minSpam);
+            Provider.of<InventoryModel>(context, listen: false)
+                .deductItem('Chicken Karaage', minKaraage);
+            Provider.of<InventoryModel>(context, listen: false)
+                .deductItem('Nori', minNori);
+            Provider.of<InventoryModel>(context, listen: false)
+                .deductItem('Fries', minFries);
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("added to cart")),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              foregroundColor: Colors.white,
-              backgroundColor: const Color.fromARGB(255, 11, 91, 78),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+            // Display the Snackbar after adding to cart
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("added to cart")),
+            );
+          },
+          style: ElevatedButton.styleFrom(
+            foregroundColor: Colors.white,
+            backgroundColor: const Color.fromARGB(255, 11, 91, 78),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: const Text('Add'),
           ),
-        ],
-      ),
-    );
-  }
+          child: const Text('Add'),
+        ),
+      ],
+    ),
+  );
+}
+
+
 }

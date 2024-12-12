@@ -1,3 +1,4 @@
+import 'package:capstone_anesi/orderModel.dart';
 import 'package:flutter/material.dart';
 
 class CartModel extends ChangeNotifier {
@@ -35,27 +36,19 @@ class CartModel extends ChangeNotifier {
     _items.clear();
     notifyListeners();
   }
-}
 
-class CartItem {
-  final String itemName;
-  final double itemPrice;
-
-  CartItem({required this.itemName, required this.itemPrice});
-}
-
-class Cart {
-  List<CartItem> items = [];
-  double totalAmount = 0.0;
-
-  void addItem(CartItem item) {
-    items.add(item);
-    totalAmount += item.itemPrice;
+  // Method to finalize the cart as an order and update the order model
+  void checkout(OrderModel orderModel, String paymentType) {
+  // This paymentType can be 'Cash' or 'Non-cash', based on the user’s choice
+  for (var item in _items) {
+    // Add each item to the order model as a product
+    orderModel.addOrder({
+      'name': item['name'],  // Correct product name
+      'price': item['price'], // Price of the product
+      'paymentType': paymentType, // Payment type: 'Cash' or 'Non-cash'
+    });
   }
-
-  void clearCart() {
-    items.clear();
-    totalAmount = 0.0;
-  }
+  clearCart();  // Clear the cart after checkout
 }
 
+}

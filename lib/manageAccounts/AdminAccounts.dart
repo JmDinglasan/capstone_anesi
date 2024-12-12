@@ -77,99 +77,127 @@ class AdminAccountsPage extends StatelessWidget {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('User Accounts'),
-        backgroundColor: kprimaryColor,
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              onPressed: () {
-                // Navigate to register page
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AdminRegister(),
-                  ),
-                );
-              },
-              child: const Text('Add Account'),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: kprimaryColor, // Text color
-                padding:
-                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                textStyle: const TextStyle(fontSize: 16),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('User Accounts'),
+      backgroundColor: kprimaryColor,
+      foregroundColor: Colors.white,
+      centerTitle: true, // Center align the title for better aesthetics
+      elevation: 2, // Add a slight shadow for depth
+    ),
+    body: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AdminRegister(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.add), // Add an icon for better visuals
+            label: const Text('Add Account'),
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: kprimaryColor,
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8), // Rounded corners
               ),
+              textStyle: const TextStyle(fontSize: 18),
             ),
           ),
-          Expanded(
-            child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: getUsersList(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Error loading accounts: ${snapshot.error}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  );
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'No accounts available',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  );
-                } else {
-                  List<Map<String, dynamic>> users = snapshot.data!;
-                  return ListView(
-                    children: users.map((user) {
-                      return ListTile(
+        ),
+        Expanded(
+          child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: getUsersList(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(
+                  child: Text(
+                    'Error loading accounts: ${snapshot.error}',
+                    style: const TextStyle(fontSize: 16, color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                );
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(
+                  child: Text(
+                    'No accounts available',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                );
+              } else {
+                List<Map<String, dynamic>> users = snapshot.data!;
+                return ListView.separated(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: users.length,
+                  itemBuilder: (context, index) {
+                    final user = users[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 6, horizontal: 16),
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.all(12),
                         title: Text(
                           '${user['firstName']} (${user['role'] == 1 ? 'Admin' : 'Staff'})',
-                          style: const TextStyle(fontSize: 16),
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          'User ID: ${user['id']}',
+                          style: const TextStyle(fontSize: 14, color: Colors.grey),
                         ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            DropdownButton<String>(
-                              value: user['role'] == 1 ? 'Admin' : 'Staff',
-                              items: const [
-                                DropdownMenuItem(
-                                    value: 'Admin', child: Text('Admin')),
-                                DropdownMenuItem(
-                                    value: 'Staff', child: Text('Staff')),
-                              ],
-                              onChanged: (value) {
-                                // This is where you would handle role updates if needed
-                              },
-                            ),
+                            // DropdownButton<String>(
+                            //   value: user['role'] == 1 ? 'Admin' : 'Staff',
+                            //   items: const [
+                            //     DropdownMenuItem(
+                            //         value: 'Admin', child: Text('Admin')),
+                            //     DropdownMenuItem(
+                            //         value: 'Staff', child: Text('Staff')),
+                            //   ],
+                            //   onChanged: (value) {
+                            //     // This is where you would handle role updates if needed
+                            //   },
+                            //   underline: Container(),
+                            // ),
                             IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
+                              icon: const Icon(Icons.delete),
+                              color: Colors.red,
+                              tooltip: 'Delete Account',
                               onPressed: () {
-                                // Call delete function on pressing the delete icon
                                 deleteUser(context, user['id']);
                               },
                             ),
                           ],
                         ),
-                      );
-                    }).toList(),
-                  );
-                }
-              },
-            ),
+                      ),
+                    );
+                  },
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 0, thickness: 1),
+                );
+              }
+            },
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 }
