@@ -1,6 +1,8 @@
 import 'package:capstone_anesi/app.dart';
 import 'package:capstone_anesi/constant.dart';
+import 'package:capstone_anesi/historyScreen/HistoryTransaction.dart';
 import 'package:capstone_anesi/main.dart';
+import 'package:capstone_anesi/productScreen/product.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -50,7 +52,7 @@ class _ListScreenState extends State<ListScreen> with SingleTickerProviderStateM
            indicatorColor: kprimaryColor,       // Color for the indicator (underline)
           tabs: const [
             Tab(text: 'Cash'),
-            Tab(text: 'Non-Cash'),
+            Tab(text: 'G-Cash'),
           ],
           
         ),
@@ -174,7 +176,7 @@ class _ListScreenState extends State<ListScreen> with SingleTickerProviderStateM
         ),
         const SizedBox(height:10),
         const Text(
-          'E - Wallet:',
+          'Cashless payment:',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
         ),
         //const SizedBox(height: 15),
@@ -309,7 +311,7 @@ class _ListScreenState extends State<ListScreen> with SingleTickerProviderStateM
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("Unsuccessful Payment"),
-          content: const Text("Entered amount too high. Please enter just the right amount."),
+          content: const Text("Error. Please enter a right amount."),
           actions: [
             TextButton(
               onPressed: () {
@@ -408,7 +410,7 @@ class _ListScreenState extends State<ListScreen> with SingleTickerProviderStateM
                   // Handle navigation to Main Screen
                   Navigator.push(
                   context,  
-                  MaterialPageRoute(builder: (context) =>const MainScreen()),
+                  MaterialPageRoute(builder: (context) =>const HistoryTransactionScreen()),
                 );
 
                   },
@@ -456,7 +458,7 @@ void _noncashpayment (BuildContext context, CartModel cartModel){
      // Retrieve cartModel using Provider
     final cartModel = Provider.of<CartModel>(context, listen: false);
     //function to input in the order details in history transaction
-    _completeOrder(context, cartModel, "Non-cash");
+    _completeOrder(context, cartModel, "G-CASH");
     // Payment is successful
     cart.clearCart(); // Clear the cart 
     //_cashInputController.clear(); // Clear the input field
@@ -466,7 +468,7 @@ void _noncashpayment (BuildContext context, CartModel cartModel){
     Provider.of<OrderModel.OrderModel>(context, listen: false).addOrder({
       'name': item['name'],  // Dynamically add the product name
       'price': item['price'],
-      'paymentType': "Non-Cash",
+      'paymentType': "G-CASH",
       'createdAt': DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()),  // 'Cash' or 'Non-cash'
     });
   });
@@ -505,7 +507,7 @@ void _noncashpayment (BuildContext context, CartModel cartModel){
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Payment Method: GCASH",
+                  "Payment Method: G-CASH",
                   style: TextStyle(fontSize: 18),
                 ),
                 SizedBox(height: 5),
@@ -528,7 +530,7 @@ void _noncashpayment (BuildContext context, CartModel cartModel){
                   onPressed: () {
                   Navigator.push(
                   context, 
-                  MaterialPageRoute(builder: (context) =>const MainScreen()),
+                  MaterialPageRoute(builder: (context) => const HistoryTransactionScreen()),
                   );
 
                   },
@@ -568,7 +570,6 @@ void _noncashpayment (BuildContext context, CartModel cartModel){
 
   // Clear the cart after successful order
   cartModel.clearCart();
-
   
 }
 

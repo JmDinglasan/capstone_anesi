@@ -217,7 +217,7 @@ class _CoffeeState extends State<Coffee> {
   }
 }
 
-class CoffeeCard extends StatelessWidget {
+class CoffeeCard extends StatefulWidget {
   final String name;
   final double price;
   final int minCoffee;
@@ -231,7 +231,7 @@ class CoffeeCard extends StatelessWidget {
   final int minIce;
   final int minSweetener;
   final int deductionAmount;
-  final int index; // Added index to identify the product
+  final int index;
 
   const CoffeeCard({
     super.key,
@@ -248,11 +248,33 @@ class CoffeeCard extends StatelessWidget {
     this.minIce = 0,
     this.minSweetener = 0,
     this.deductionAmount = 0,
-    required this.index, // Receive the index
+    required this.index,
   });
 
   @override
+  _CoffeeCardState createState() => _CoffeeCardState();
+}
+
+class _CoffeeCardState extends State<CoffeeCard> {
+  bool _isStockSufficient = true; // Track stock availability
+
+  @override
   Widget build(BuildContext context) {
+    // Create a map of ingredients with their amounts
+    Map<String, int> ingredients = {
+      'Coffee': widget.minCoffee,
+      'Milk': widget.minMilk,
+      'Chocolate Syrup': widget.minChoco,
+      'Caramel Syrup': widget.minCaramel,
+      'Strawberry Syrup': widget.minStrawberry,
+      'Ube Syrup': widget.minUbe,
+      'Sweetener': widget.minSweetener,
+      'Vanilla Syrup': widget.minVanilla,
+      'White Chocolate Syrup': widget.minWhiteChoco,
+      'Ice': widget.minIce,
+      'deductionAmount': widget.deductionAmount,
+    };
+
     return Container(
       decoration: BoxDecoration(
         color: kprimaryColor, // Replace with kprimaryColor if defined
@@ -260,74 +282,122 @@ class CoffeeCard extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(vertical: 20),
       child: Column(
-        mainAxisAlignment:
-            MainAxisAlignment.center, // Vertically center the content
-        crossAxisAlignment:
-            CrossAxisAlignment.center, // Horizontally center the content
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            name,
+            widget.name,
             style: const TextStyle(color: Colors.white, fontSize: 15),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           Text(
-            price.toStringAsFixed(2),
+            widget.price.toStringAsFixed(2),
             style: const TextStyle(
                 color: Colors.white, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 40),
           ElevatedButton(
-            onPressed: () async {
-              // Add the product to the cart
-              Provider.of<CartModel>(context, listen: false)
-                  .addToCart(name, price);
+            onPressed: _isStockSufficient
+                ? () async {
+                    // Check if stock is sufficient before proceeding
+                    bool stockAvailable =
+                        await _checkStockAvailability(ingredients, context);
 
-              // Create a map of the ingredients with their amounts
-              Map<String, int> ingredients = {
-                'Coffee': minCoffee,
-                'Milk': minMilk,
-                'Chocolate Syrup': minChoco,
-                'Caramel Syrup': minCaramel,
-                'Strawberry Syrup': minStrawberry,
-                'Ube Syrup': minUbe,
-                'Sweetener': minSweetener,
-                'Vanilla Syrup': minVanilla,
-                'White Chocolate Syrup': minWhiteChoco,
-                'Ice': minIce,
-                'deductionAmount': deductionAmount,
-              };
+                    if (!stockAvailable) {
+                      // If stock is insufficient, show the dialog
+                      _showOutOfStockDialog(context);
+                    } else {
+                      // Add product to cart and deduct ingredients if stock is sufficient
+                      Provider.of<CartModel>(context, listen: false)
+                          .addToCart(widget.name, widget.price);
 
-              // Deduct the ingredients from the inventory
-              final inventory =
-                  Provider.of<InventoryModel>(context, listen: false);
-              for (var entry in ingredients.entries) {
-                String ingredientName = entry.key;
-                int amount = entry.value;
+                      // Deduct ingredients from the inventory
+                      final inventory =
+                          Provider.of<InventoryModel>(context, listen: false);
+                      for (var entry in ingredients.entries) {
+                        String ingredientName = entry.key;
+                        int amount = entry.value;
 
-                if (amount > 0) {
-                  await inventory.deductItem(ingredientName, amount);
-                }
-              }
+                        if (amount > 0) {
+                          await inventory.deductItem(ingredientName, amount);
+                        }
+                      }
 
-              // Log or show a confirmation that the deduction occurred (optional)
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("added to cart")),
-              );
-            },
+                      // Show confirmation message
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Added to cart")),
+                      );
+                    }
+                  }
+                : null,
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: const Color.fromARGB(255, 11, 91, 78),
+              backgroundColor: _isStockSufficient
+                  ? const Color.fromARGB(255, 11, 91, 78)
+                  : Colors.grey,
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Add'),
+            child: Text(
+              _isStockSufficient ? 'Add' : 'Out of stock',
+              style: TextStyle(
+                color: _isStockSufficient ? Colors.white : Colors.red,
+              ),
+            ),
           ),
           const SizedBox(height: 30),
         ],
       ),
     );
+  }
+
+  // Method to show the "Out of Stock" dialog
+  void _showOutOfStockDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Insufficient Ingredients"),
+          content: const Text("Sorry, this product is out of stock or ingredients are insufficient."),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                // Reload the page or refresh the button by changing the state
+                setState(() {
+                  _isStockSufficient = false; // Button becomes disabled
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Modified _checkStockAvailability to check against local inventory
+  Future<bool> _checkStockAvailability(
+      Map<String, int> ingredients, BuildContext context) async {
+    final inventory = Provider.of<InventoryModel>(context, listen: false);
+
+    // Check the stock of each ingredient
+    for (var entry in ingredients.entries) {
+      String ingredientName = entry.key;
+      int requiredAmount = entry.value;
+
+      if (requiredAmount > 0) {
+        // Get current stock from local inventory (no need to query Firestore)
+        int currentStock = inventory.getItemStock(ingredientName);
+
+        if (currentStock < requiredAmount) {
+          return false; // If any ingredient has insufficient stock
+        }
+      }
+    }
+    return true; // All ingredients are sufficient
   }
 }

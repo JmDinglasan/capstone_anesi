@@ -336,27 +336,27 @@ class _RegisterState extends State<Register> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            MaterialButton(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(20.0))),
-                              elevation: 5.0,
-                              height: 40,
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => LoginPage(),
-                                  ),
-                                );
-                              },
-                              child: Text(
-                                "Sign In",
-                                style: TextStyle(
-                                    fontSize: 20, color: Colors.white),
-                              ),
-                              color: Colors.green[900],
-                            ),
+                            // MaterialButton(
+                            //   shape: RoundedRectangleBorder(
+                            //       borderRadius:
+                            //           BorderRadius.all(Radius.circular(20.0))),
+                            //   elevation: 5.0,
+                            //   height: 40,
+                            //   onPressed: () {
+                            //     Navigator.push(
+                            //       context,
+                            //       MaterialPageRoute(
+                            //         builder: (context) => LoginPage(),
+                            //       ),
+                            //     );
+                            //   },
+                            //   child: Text(
+                            //     "Sign In",
+                            //     style: TextStyle(
+                            //         fontSize: 20, color: Colors.white),
+                            //   ),
+                            //   color: Colors.green[900],
+                            // ),
                             MaterialButton(
                               shape: RoundedRectangleBorder(
                                   borderRadius:

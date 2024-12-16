@@ -12,7 +12,8 @@ class InventoryItem {
   factory InventoryItem.fromFirestore(DocumentSnapshot doc) {
     return InventoryItem(
       name: doc.id, // The document ID represents the item name
-      stock: doc['stock'] ?? 0, // Access the 'stock' field from the Firestore document
+      stock: doc['stock'] ??
+          0, // Access the 'stock' field from the Firestore document
     );
   }
 }
@@ -32,12 +33,13 @@ class InventoryModel with ChangeNotifier {
   // Public getter for inventory
   Map<String, int> get inventory => _inventory;
 
-    // Stream to fetch the inventory items
+  // Stream to fetch the inventory items
   Stream<List<InventoryItem>> get inventoryStream {
     return _inventoryRef.snapshots().map((snapshot) {
       List<InventoryItem> items = [];
       for (var doc in snapshot.docs) {
-        items.add(InventoryItem.fromFirestore(doc)); // Convert Firestore document to InventoryItem
+        items.add(InventoryItem.fromFirestore(
+            doc)); // Convert Firestore document to InventoryItem
       }
       return items;
     });
@@ -65,6 +67,35 @@ class InventoryModel with ChangeNotifier {
     await _inventoryRef.doc(itemName).set({'stock': amount});
   }
 
+  //NEW METHOD FOR INCREMENTING STOCKS AMOUNT
+  Future<void> incrementItemStock(String itemName, int amount) async {
+    try {
+      final DocumentReference docRef =
+          FirebaseFirestore.instance.collection('inventory').doc(itemName);
+
+      // Get the current stock
+      final DocumentSnapshot docSnapshot = await docRef.get();
+      int currentStock = 0;
+
+      if (docSnapshot.exists && docSnapshot.data() != null) {
+        currentStock = docSnapshot.get('stock') ?? 0;
+      }
+
+      // Increment the stock
+      int newStock = currentStock + amount;
+
+      // Update Firebase
+      await docRef.update({'stock': newStock});
+
+      // Update local inventory map
+      _inventory[itemName] = newStock;
+      notifyListeners();
+    } catch (e) {
+      print("Error updating stock: $e");
+      rethrow;
+    }
+  }
+
   Future<void> deductItem(String itemName, int amount) async {
     // Deduct the item stock and update the local inventory map
     _inventory[itemName] =
@@ -83,7 +114,8 @@ class InventoryModel with ChangeNotifier {
 
       // Check if the ingredient exists before deducting
       if (_inventory.containsKey(name)) {
-        _inventory[name] = (_inventory[name]! - amount).clamp(0, _inventory[name]!);
+        _inventory[name] =
+            (_inventory[name]! - amount).clamp(0, _inventory[name]!);
         await _inventoryRef.doc(name).update({'stock': _inventory[name]!});
       }
     }
@@ -119,11 +151,13 @@ class InventoryModel with ChangeNotifier {
     // Check if the item exists in the local inventory map
     if (_inventory.containsKey(itemName)) {
       // Remove from the local inventory map
-      _inventory.remove(itemName); 
+      _inventory.remove(itemName);
       notifyListeners(); // Notify listeners to update the UI
 
       // Delete the item from Firestore
       await _inventoryRef.doc(itemName).delete();
     }
   }
+
+  
 }

@@ -263,7 +263,7 @@ void _showInputDialog(
           borderRadius: BorderRadius.circular(15),
         ),
         title: Text(
-          "Set Initial $itemName Amount",
+          "Add Stock to $itemName",
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.black87,
@@ -277,7 +277,7 @@ void _showInputDialog(
               controller: controller,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                hintText: "Enter Initial Amount",
+                hintText: "Enter Stock to Add",
                 filled: true,
                 fillColor: Colors.grey.shade100,
                 contentPadding:
@@ -307,11 +307,11 @@ void _showInputDialog(
             onPressed: () async {
               int? amount = int.tryParse(controller.text);
               if (amount != null) {
-                await inventory.setItemStock(itemName, amount);
+                await inventory.incrementItemStock(itemName, amount);
               }
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("initial amount successfully set")),
+                const SnackBar(content: Text("Stock successfully updated")),
               );
             },
             style: ElevatedButton.styleFrom(
@@ -321,7 +321,7 @@ void _showInputDialog(
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            child: const Text("Set"),
+            child: const Text("Add"),
           ),
         ],
       );

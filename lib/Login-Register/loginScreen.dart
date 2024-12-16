@@ -16,191 +16,220 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool _isObscure3 = true;
   bool visible = false;
+  String _errorMessage = ''; // Add a variable to store error messages
   final _formkey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   final _auth = FirebaseAuth.instance;
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    body: Center( // Centers all content in the middle of the page
-      child: SingleChildScrollView(  // Make the page scrollable
-        child: Container(
-          margin: const EdgeInsets.all(12),
-          child: Form(
-            key: _formkey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center, // Center vertically
-              crossAxisAlignment: CrossAxisAlignment.center, // Center horizontally
-              mainAxisSize: MainAxisSize.min, // Adjust size to fit content
-              children: [
-                // Circular container for logo
-                Container(
-                  height: 110,
-                  width: 110,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 8,
-                        spreadRadius: 2,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        // Centers all content in the middle of the page
+        child: SingleChildScrollView(
+          // Make the page scrollable
+          child: Container(
+            margin: const EdgeInsets.all(12),
+            child: Form(
+              key: _formkey,
+              child: Column(
+                mainAxisAlignment:
+                    MainAxisAlignment.center, // Center vertically
+                crossAxisAlignment:
+                    CrossAxisAlignment.center, // Center horizontally
+                mainAxisSize: MainAxisSize.min, // Adjust size to fit content
+                children: [
+                  // Circular container for logo
+                  Container(
+                    height: 110,
+                    width: 110,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 8,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/logo.jpg', // Replace this with an Image widget
+                        fit: BoxFit
+                            .cover, // Ensures the logo fits within the circular container
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  const Column(
+                    children: [
+                      Text(
+                        "ANESI",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: kprimaryColor,
+                          fontSize: 40,
+                          fontFamily: 'RobotoSlab', // Example custom font
+                          letterSpacing:
+                              1.0, // Adds some spacing between letters
+                        ),
+                      ),
+                      SizedBox(height: 8), // Spacing between title and subtitle
+                      Text(
+                        "Sugar Road, Carmona Cavite",
+                        style: TextStyle(
+                          fontSize: 16, // Smaller font size for subtitle
+                          color: kprimaryColor,
+                          fontFamily: 'Poppins', // Match font style with title
+                          fontStyle:
+                              FontStyle.normal, // Optional: adds stylish look
+                        ),
                       ),
                     ],
                   ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      'assets/logo.jpg', // Replace this with an Image widget
-                      fit: BoxFit.cover, // Ensures the logo fits within the circular container
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                const Column(
-                  children: [
-                    Text(
-                      "ANESI",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: kprimaryColor,
-                        fontSize: 40,
-                        fontFamily: 'RobotoSlab', // Example custom font
-                        letterSpacing: 1.0, // Adds some spacing between letters
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: emailController,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      hintText: 'Email',
+                      contentPadding: const EdgeInsets.only(
+                          left: 14.0, bottom: 8.0, top: 8.0),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.green),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.green),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    SizedBox(height: 8), // Spacing between title and subtitle
-                    Text(
-                      "Sugar Road, Carmona Cavite",
-                      style: TextStyle(
-                        fontSize: 16, // Smaller font size for subtitle
-                        color: kprimaryColor,
-                        fontFamily: 'Poppins', // Match font style with title
-                        fontStyle: FontStyle.normal, // Optional: adds stylish look
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return "Email cannot be empty";
+                      }
+                      if (!RegExp("^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+.[a-z]")
+                          .hasMatch(value)) {
+                        return "Please enter a valid email";
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      emailController.text = value!;
+                    },
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: passwordController,
+                    obscureText: _isObscure3,
+                    decoration: InputDecoration(
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isObscure3 ? Icons.visibility : Icons.visibility_off,
+                          color: kprimaryColor,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isObscure3 = !_isObscure3;
+                          });
+                        },
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      hintText: 'Password',
+                      contentPadding: const EdgeInsets.only(
+                          left: 14.0, bottom: 8.0, top: 8.0),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.green),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: const BorderSide(color: Colors.green),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    hintText: 'Email',
-                    contentPadding:
-                        const EdgeInsets.only(left: 14.0, bottom: 8.0, top: 8.0),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.green),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.green),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return "Password cannot be empty";
+                      }
+                      if (!RegExp(r'^.{6,}$').hasMatch(value)) {
+                        return "Please enter a valid password (min. 6 characters)";
+                      }
+                      return null;
+                    },
+                    onSaved: (value) {
+                      passwordController.text = value!;
+                    },
+                    keyboardType: TextInputType.visiblePassword,
                   ),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return "Email cannot be empty";
-                    }
-                    if (!RegExp("^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+.[a-z]")
-                        .hasMatch(value)) {
-                      return "Please enter a valid email";
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    emailController.text = value!;
-                  },
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: passwordController,
-                  obscureText: _isObscure3,
-                  decoration: InputDecoration(
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _isObscure3 ? Icons.visibility : Icons.visibility_off,
-                        color: kprimaryColor,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _isObscure3 = !_isObscure3;
-                        });
-                      },
+                  const SizedBox(height: 45),
+                  MaterialButton(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20.0),
                     ),
-                    filled: true,
-                    fillColor: Colors.white,
-                    hintText: 'Password',
-                    contentPadding:
-                        const EdgeInsets.only(left: 14.0, bottom: 8.0, top: 8.0),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.green),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.green),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return "Password cannot be empty";
-                    }
-                    if (!RegExp(r'^.{6,}$').hasMatch(value)) {
-                      return "Please enter a valid password (min. 6 characters)";
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    passwordController.text = value!;
-                  },
-                  keyboardType: TextInputType.visiblePassword,
-                ),
-                const SizedBox(height: 45),
-                MaterialButton(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20.0),
-                  ),
-                  elevation: 5.0,
-                  height: 40,
-                  onPressed: () {
-                    setState(() {
-                      visible = true;
-                    });
-                    signIn(emailController.text, passwordController.text);
-                  },
-                  color: kprimaryColor,
-                  child: const Text(
-                    "Login",
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Visibility(
-                  maintainSize: true,
-                  maintainAnimation: true,
-                  maintainState: true,
-                  visible: visible,
-                  child: const CircularProgressIndicator(
+                    elevation: 5.0,
+                    height: 40,
+                    onPressed: () {
+                      setState(() {
+                        visible = true;
+                        _errorMessage = '';
+                      });
+                      signIn(emailController.text, passwordController.text);
+                    },
                     color: kprimaryColor,
+                    child: const Text(
+                      "Login",
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  Visibility(
+                    maintainSize: true,
+                    maintainAnimation: true,
+                    maintainState: true,
+                    visible: visible,
+                    child: const CircularProgressIndicator(
+                      color: kprimaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  if (_errorMessage
+                      .isNotEmpty) // Display error message if exists
+                    Text(
+                      _errorMessage,
+                      style: const TextStyle(color: Colors.red, fontSize: 16),
+                    ),
+                     const SizedBox(height: 20),
+                  TextButton(
+                    onPressed: () {
+                      _showForgotPasswordDialog();
+                    },
+                    child: const Text(
+                      "Forgot Password?",
+                      style: TextStyle(
+                        color: kprimaryColor,
+                        fontSize: 16,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   void route() {
     User? user = FirebaseAuth.instance.currentUser;
@@ -248,12 +277,82 @@ Widget build(BuildContext context) {
         );
         route();
       } on FirebaseAuthException catch (e) {
-        if (e.code == 'user-not-found') {
-          print('No user found for that email.');
-        } else if (e.code == 'wrong-password') {
-          print('Wrong password provided for that user.');
-        }
+        setState(() {
+          visible = false; // Hide progress indicator on error
+          if (e.code == 'user-not-found') {
+            _errorMessage = 'No user found for that email.';
+          } else if (e.code == 'wrong-password') {
+            _errorMessage = 'Wrong password provided for that user.';
+          } else {
+            _errorMessage = 'Wrong credentials provided by the user. Please try again.';
+          }
+        });
       }
+    }
+  }
+
+    void _showForgotPasswordDialog() {
+    final TextEditingController resetEmailController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Reset Password"),
+          content: TextFormField(
+            controller: resetEmailController,
+            decoration: InputDecoration(
+              hintText: "Enter your email",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                _resetPassword(resetEmailController.text);
+                Navigator.of(context).pop();
+              },
+              child: const Text("Send"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Password reset email sent. Check your inbox.",
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      String message;
+      if (e.code == 'user-not-found') {
+        message = "No user found with this email.";
+      } else {
+        message = "Failed to send reset email. Please try again.";
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 }

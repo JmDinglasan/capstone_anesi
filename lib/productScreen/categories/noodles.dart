@@ -204,7 +204,7 @@ class _NoodlesState extends State<Noodles> {
   }
 }
 
-class CoffeeCard extends StatelessWidget {
+class CoffeeCard extends StatefulWidget {
   final String name;
   final double price;
   final int minMeltedCheese;
@@ -231,7 +231,25 @@ class CoffeeCard extends StatelessWidget {
   });
 
   @override
+  _CoffeeCardState createState() => _CoffeeCardState();
+}
+
+class _CoffeeCardState extends State<CoffeeCard> {
+  bool _isStockSufficient = true; // Track stock availability
+
+  @override
   Widget build(BuildContext context) {
+    // Create a map of ingredients with their amounts
+    Map<String, int> ingredients = {
+      'Melted Cheese': widget.minMeltedCheese,
+      'Cheesy Spicy Samyang Noodles': widget.minCSN,
+      'Cheesy Spicy Samyang Carbonara': widget.minCSC,
+      'Cheesy Samyang Noodles': widget.minCN,
+      'Egg': widget.minEgg,
+      'Spam': widget.minSpam,
+      'Chicken Karaage': widget.minKaraage,
+    };
+
     return Container(
       decoration: BoxDecoration(
         color: kprimaryColor,
@@ -239,59 +257,122 @@ class CoffeeCard extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(8),
       child: Column(
-        mainAxisAlignment:
-            MainAxisAlignment.center, // Vertically center the content
-        crossAxisAlignment:
-            CrossAxisAlignment.center, // Horizontally center the content
+        mainAxisAlignment: MainAxisAlignment.center, // Vertically center the content
+        crossAxisAlignment: CrossAxisAlignment.center, // Horizontally center the content
         children: [
           Text(
-            name,
+            widget.name,
             style: const TextStyle(color: Colors.white, fontSize: 15),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 15),
           Text(
-            price.toStringAsFixed(2),
+            widget.price.toStringAsFixed(2),
             style: const TextStyle(
                 color: Colors.white, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 25),
           ElevatedButton(
-            onPressed: () {
-              Provider.of<CartModel>(context, listen: false)
-                  .addToCart(name, price);
+            onPressed: _isStockSufficient
+                ? () async {
+                    // Check if stock is sufficient before proceeding
+                    bool stockAvailable =
+                        await _checkStockAvailability(ingredients, context);
 
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Melted Cheese', minMeltedCheese);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Cheesy Spicy Samyang Noodles', minCSN);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Cheesy Spicy Samyang Carbonara', minCSC);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Cheesy Samyang Noodles', minCN);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Egg', minEgg);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Spam', minSpam);
-              Provider.of<InventoryModel>(context, listen: false)
-                  .deductItem('Chicken Karaage', minKaraage);
+                    if (!stockAvailable) {
+                      // If stock is insufficient, show the dialog
+                      _showOutOfStockDialog(context);
+                    } else {
+                      // Add product to cart and deduct ingredients if stock is sufficient
+                      Provider.of<CartModel>(context, listen: false)
+                          .addToCart(widget.name, widget.price);
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("added to cart")),
-              );
-            },
+                      // Deduct ingredients from the inventory
+                      final inventory =
+                          Provider.of<InventoryModel>(context, listen: false);
+                      for (var entry in ingredients.entries) {
+                        String ingredientName = entry.key;
+                        int amount = entry.value;
+
+                        if (amount > 0) {
+                          await inventory.deductItem(ingredientName, amount);
+                        }
+                      }
+
+                      // Show confirmation message
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Added to cart")),
+                      );
+                    }
+                  }
+                : null,
             style: ElevatedButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: const Color.fromARGB(255, 11, 91, 78),
+              backgroundColor: _isStockSufficient
+                  ? const Color.fromARGB(255, 11, 91, 78)
+                  : Colors.grey,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Add'),
+            child: Text(
+              _isStockSufficient ? 'Add' : 'Out of stock',
+              style: TextStyle(
+                color: _isStockSufficient ? Colors.white : Colors.red,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
+
+  // Method to show the "Out of Stock" dialog
+  void _showOutOfStockDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Insufficient Ingredients"),
+          content: const Text("Sorry, this product is out of stock or ingredients are insufficient."),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                // Reload the page or refresh the button by changing the state
+                setState(() {
+                  _isStockSufficient = false; // Button becomes disabled
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Modified _checkStockAvailability to check against local inventory
+  Future<bool> _checkStockAvailability(
+      Map<String, int> ingredients, BuildContext context) async {
+    final inventory = Provider.of<InventoryModel>(context, listen: false);
+
+    // Check the stock of each ingredient
+    for (var entry in ingredients.entries) {
+      String ingredientName = entry.key;
+      int requiredAmount = entry.value;
+
+      if (requiredAmount > 0) {
+        // Get current stock from local inventory (no need to query Firestore)
+        int currentStock = inventory.getItemStock(ingredientName);
+
+        if (currentStock < requiredAmount) {
+          return false; // If any ingredient has insufficient stock
+        }
+      }
+    }
+    return true; // All ingredients are sufficient
+  }
 }
+
